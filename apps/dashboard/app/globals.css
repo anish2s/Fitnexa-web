@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+@import '@fitnexa/ui/theme.css';
+@source '../../../packages/ui/src';
+
+html, body { min-height: 100%; }
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv11', 'ss01';
+}
+.tabular-nums { font-variant-numeric: tabular-nums; }

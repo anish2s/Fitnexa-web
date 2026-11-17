@@ -1,0 +1,139 @@
+/*
+ * Fitnexa design tokens.
+ * Themes are scoped to [data-theme], so a light block can sit inside a dark page (design preview).
+ * The gym accent comes from brandVars() (brand.ts) as --brand-{dark|light}-*; each theme picks its set.
+ * Components use only these semantic tokens (via Tailwind: bg-surface, text-muted, border-border…).
+ */
+
+:root {
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+
+  /* Fallback brand (neutral) until a gym's branding loads. */
+  --brand-dark-accent: #a1a1aa;
+  --brand-dark-on-accent: #0a0a0b;
+  --brand-dark-accent-text: #a1a1aa;
+  --brand-light-accent: #52525b;
+  --brand-light-on-accent: #ffffff;
+  --brand-light-accent-text: #52525b;
+}
+
+/* ---------- Dark (default) — calm near-black, Omnix-style ---------- */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #070b12;
+  --surface: #0d131d;
+  --surface-2: #131b27;
+  --surface-3: #1a2432;
+  --overlay: rgb(0 0 0 / 0.6);
+
+  --border: #1e2a3a;
+  --border-strong: #2b3a4f;
+
+  --text: #f1f5f9;
+  --text-muted: #a3afbf;
+  --text-subtle: #8593a5;
+
+  /* Soft sky-blue glow behind dark pages (subtle; not a heavy gradient). */
+  --bg-glow: radial-gradient(1100px 640px at 60% -80px, rgb(56 189 248 / 0.22), transparent 70%),
+    radial-gradient(700px 460px at -120px 40px, rgb(14 165 233 / 0.12), transparent 70%);
+
+  --accent: var(--brand-dark-accent);
+  --on-accent: var(--brand-dark-on-accent);
+  --accent-text: var(--brand-dark-accent-text);
+  --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
+  --accent-ring: color-mix(in oklab, var(--accent) 55%, transparent);
+  --accent-glow: 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent),
+    0 0 18px -4px color-mix(in oklab, var(--accent) 55%, transparent);
+
+  --success: #22c55e;
+  --success-text: #4ade80;
+  --success-soft: rgb(34 197 94 / 0.14);
+  --warning: #f59e0b;
+  --warning-text: #fbbf24;
+  --warning-soft: rgb(245 158 11 / 0.14);
+  --danger: #ef4444;
+  --danger-solid: #dc2626; /* button fill: 4.8:1 with white */
+  --danger-text: #f87171;
+  --danger-soft: rgb(239 68 68 / 0.14);
+  --info: #3b82f6;
+  --info-text: #60a5fa;
+  --info-soft: rgb(59 130 246 / 0.14);
+  --neutral-soft: rgb(148 163 184 / 0.12);
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elev-2: 0 4px 12px -2px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --elev-3: 0 16px 40px -8px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+/* ---------- Light ---------- */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f6f6f7;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --surface-3: #e9e9ec;
+  --overlay: rgb(9 9 11 / 0.4);
+
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+
+  --text: #0a0a0b;
+  --text-muted: #52525b;
+  --text-subtle: #6b6b75;
+
+  --bg-glow: none;
+
+  --accent: var(--brand-light-accent);
+  --on-accent: var(--brand-light-on-accent);
+  --accent-text: var(--brand-light-accent-text);
+  --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+  --accent-ring: color-mix(in oklab, var(--accent) 45%, transparent);
+  --accent-glow: 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent),
+    0 4px 14px -6px color-mix(in oklab, var(--accent) 45%, transparent);
+
+  --success: #16a34a;
+  --success-text: #15803d;
+  --success-soft: rgb(22 163 74 / 0.1);
+  --warning: #d97706;
+  --warning-text: #b45309;
+  --warning-soft: rgb(217 119 6 / 0.12);
+  --danger: #dc2626;
+  --danger-solid: #dc2626;
+  --danger-text: #b91c1c;
+  --danger-soft: rgb(220 38 38 / 0.1);
+  --info: #2563eb;
+  --info-text: #1d4ed8;
+  --info-soft: rgb(37 99 235 / 0.1);
+  --neutral-soft: rgb(82 82 91 / 0.08);
+
+  --elev-1: 0 1px 2px rgb(16 24 40 / 0.05);
+  --elev-2: 0 1px 3px rgb(16 24 40 / 0.06), 0 4px 12px -2px rgb(16 24 40 / 0.06);
+  --elev-3: 0 20px 40px -12px rgb(16 24 40 / 0.22);
+  --card-highlight: 0 1px 2px rgb(16 24 40 / 0.04);
+}
+
+[data-theme] {
+  background-color: var(--bg);
+  background-image: var(--bg-glow);
+  background-repeat: no-repeat;
+  color: var(--text);
+}
+
+@keyframes fx-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes fx-enter {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
