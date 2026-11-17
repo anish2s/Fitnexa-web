@@ -13,7 +13,7 @@ export default function PreviewRootLayout({ children }: { children: React.ReactN
   if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DESIGN_PREVIEW !== 'true') notFound();
   return (
     <html lang="en-IN" data-theme="dark" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="bg-bg text-fg text-base">{children}</body>
+      <body className="bg-bg text-fg text-base" suppressHydrationWarning>{children}</body>
     </html>
   );
 }

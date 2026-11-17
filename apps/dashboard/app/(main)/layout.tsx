@@ -40,7 +40,9 @@ export default async function MainRootLayout({ children }: { children: React.Rea
       suppressHydrationWarning
     >
       <head>{followSystem && <script dangerouslySetInnerHTML={{ __html: SYSTEM_THEME_SCRIPT }} />}</head>
-      <body className="min-h-dvh text-base">
+      {/* Browser extensions (Grammarly, ColorZilla, password managers) add attributes to <body> before
+          hydration; this silences that one element only, not its children. */}
+      <body className="min-h-dvh text-base" suppressHydrationWarning>
         {ctx.scope === 'gym' || ctx.scope === 'platform' ? (
           <Providers
             site={ctx.scope === 'gym' ? { scope: 'gym', tenant: ctx.tenant } : { scope: 'platform' }}
