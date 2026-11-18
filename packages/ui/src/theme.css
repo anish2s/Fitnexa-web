@@ -1,7 +1,7 @@
 /*
- * Tailwind v4 theme for Fitnexa. Import after "tailwindcss" in each app:
+ * Tailwind v4 theme for Fitexaa. Import after "tailwindcss" in each app:
  *   @import "tailwindcss";
- *   @import "@fitnexa/ui/theme.css";
+ *   @import "@fitexaa/ui/theme.css";
  *   @source "<path>/packages/ui/src";
  * Colours map to the semantic CSS variables in tokens.css, so every utility follows the theme
  * ([data-theme]) and the gym accent automatically. No `dark:` variants are needed.

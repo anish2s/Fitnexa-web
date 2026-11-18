@@ -1,5 +1,5 @@
 import { Hammer } from 'lucide-react';
-import { Card, EmptyState } from '@fitnexa/ui';
+import { Card, EmptyState } from '@fitexaa/ui';
 import { PageHeader } from './page-header';
 
 /** Placeholder for screens planned in a later milestone (so the menu never leads to a 404). */

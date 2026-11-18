@@ -1,6 +1,6 @@
-# fitnexa-web
+# fitexaa-web
 
-Frontends for **Fitnexa**, the multi-tenant gym management platform:
+Frontends for **Fitexaa**, the multi-tenant gym management platform:
 
 | App | Path | Phase | Status |
 |---|---|---|---|
@@ -9,10 +9,10 @@ Frontends for **Fitnexa**, the multi-tenant gym management platform:
 
 Both apps are Next.js + TypeScript + Tailwind and share one design system (`packages/ui`)
 driven by each gym's branding tokens. Gym screens are white-label (the gym's own name, logo and
-colour); the Fitnexa brand appears only on the platform (super admin) console.
+colour); the Fitexaa brand appears only on the platform (super admin) console.
 
 ## Backend
-All data and business rules come from **fitnexa-backend** (`../fitnexa-backend`) over its REST API.
+All data and business rules come from **fitexaa-backend** (`../fitexaa-backend`) over its REST API.
 This repo holds no business logic. API types are generated from the backend's OpenAPI spec
 (`/api/v1/openapi.json`) rather than copied by hand.
 
@@ -21,7 +21,7 @@ Each gym is served on its own subdomain (`powerhouse.yourapp.in`). The Next.js a
 visitor's IP (so rate limits are per visitor). Deployment requirements: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Development
-Needs the backend running (`../fitnexa-backend`, see its docs/DEVELOPMENT.md) **with
+Needs the backend running (`../fitexaa-backend`, see its docs/DEVELOPMENT.md) **with
 `TRUST_PROXY=loopback`** (the dashboard runs on the same machine), because the dashboard proxies
 `/api/*` to it and passes the gym's host in `X-Forwarded-Host` and the visitor's IP in `X-Forwarded-For`.
 
@@ -36,7 +36,7 @@ Open a gym by its subdomain (browsers resolve `*.localhost` to your machine):
 |---|---|
 | http://powerhouse.localhost:3000 | Powerhouse Fitness (demo gym) |
 | http://fitzone.localhost:3000 | FitZone (demo gym, light theme) |
-| http://admin.localhost:3000 | Fitnexa platform console (super admin) |
+| http://admin.localhost:3000 | Fitexaa platform console (super admin) |
 | http://localhost:3000/design-preview | Design system and mock-ups (sample data; dev only) |
 
 Sign in with the demo accounts printed by the backend's `npm run seed` (e.g. `owner@powerhouse.demo`,
@@ -49,7 +49,7 @@ npm run lint           # ESLint (Next.js + TypeScript configs) in every workspac
 npm run build          # generates route types; run before typecheck on a fresh clone
 npm run typecheck      # all workspaces
 npm test               # unit tests (dashboard, api-client, ui)
-npm run gen -w @fitnexa/api-client   # regenerate API types after backend route/schema changes
+npm run gen -w @fitexaa/api-client   # regenerate API types after backend route/schema changes
 ```
 
 ### End-to-end tests
@@ -58,7 +58,7 @@ demo seed and its **normal rate limits** (don't raise `RATE_LIMIT_MAX` / `AUTH_R
 account signs in through the form once per run and later tests reuse that browser session
 (`e2e/fixtures.ts`), so the suite stays inside the sign-in limits run after run.
 ```bash
-# API (in ../fitnexa-backend): TRUST_PROXY=loopback, a seeded database, default limits
+# API (in ../fitexaa-backend): TRUST_PROXY=loopback, a seeded database, default limits
 # Dashboard: a separate build folder, so it can run next to `npm run dev`
 cd apps/dashboard
 NEXT_DIST_DIR=.next-e2e API_URL=http://127.0.0.1:4000 npx next build
@@ -70,7 +70,7 @@ The build adds `.next-e2e/types` entries to `tsconfig.json`; don't commit them.
 
 ## Layout
 ```
-fitnexa-web/
+fitexaa-web/
 ├── apps/
 │   ├── dashboard/     # Phase 2 (Next.js)
 │   └── member/        # Phase 3

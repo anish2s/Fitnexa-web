@@ -1,6 +1,6 @@
 'use client';
 
-import type { RazorpayCheckout } from '@fitnexa/api-client';
+import type { RazorpayCheckout } from '@fitexaa/api-client';
 
 /** Razorpay Checkout's own script (the only way to open its payment window). */
 const SRC = 'https://checkout.razorpay.com/v1/checkout.js';

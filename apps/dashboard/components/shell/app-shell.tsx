@@ -2,7 +2,7 @@
 
 import { useState, type ElementType, type ReactNode } from 'react';
 import { LogOut, Menu, X } from 'lucide-react';
-import { Avatar, NavGroup, NavItem } from '@fitnexa/ui';
+import { Avatar, NavGroup, NavItem } from '@fitexaa/ui';
 
 export interface NavEntry {
   href: string;
@@ -16,7 +16,7 @@ export interface NavSection {
 }
 
 export interface AppShellProps {
-  /** Sidebar brand: the gym's name + logo (white-label) or the Fitnexa mark (platform). */
+  /** Sidebar brand: the gym's name + logo (white-label) or the Fitexaa mark (platform). */
   brand: ReactNode;
   /** Compact brand for the mobile top bar. */
   mobileBrand: ReactNode;

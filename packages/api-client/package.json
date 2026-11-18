@@ -1,5 +1,5 @@
 {
-  "name": "@fitnexa/api-client",
+  "name": "@fitexaa/api-client",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "gen": "openapi-typescript ${OPENAPI_SOURCE:-../../../fitnexa-backend/docs/openapi.json} -o src/schema.d.ts",
+    "gen": "openapi-typescript ${OPENAPI_SOURCE:-../../../fitexaa-backend/docs/openapi.json} -o src/schema.d.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/*.test.ts",
     "lint": "eslint ."

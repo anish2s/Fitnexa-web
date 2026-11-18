@@ -1,6 +1,6 @@
 'use client';
 
-import type { ApiClient } from '@fitnexa/api-client';
+import type { ApiClient } from '@fitexaa/api-client';
 
 export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export const IMAGE_MAX_BYTES = 5 * 1024 * 1024;

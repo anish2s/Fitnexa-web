@@ -7,7 +7,7 @@
  * catch up within the minute. "API down" is never cached. Shared by pages and proxy.ts, so it has no
  * request-scoped imports.
  */
-import type { PublicTenant } from '@fitnexa/api-client';
+import type { PublicTenant } from '@fitexaa/api-client';
 import { API_URL } from './env';
 import { forwardedHeaders } from './forwarding';
 

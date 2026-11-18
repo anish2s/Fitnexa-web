@@ -1,5 +1,5 @@
 /**
- * Response `data` shapes, transcribed from fitnexa-backend docs/API.md (the OpenAPI spec describes
+ * Response `data` shapes, transcribed from fitexaa-backend docs/API.md (the OpenAPI spec describes
  * responses only as the generic envelope). Add types here as screens start using endpoints.
  * Money is integer paise; dates are `YYYY-MM-DD` (gym-local) unless named `…At` (ISO timestamp).
  */

@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { CloudOff } from 'lucide-react';
-import { Badge, Button, EmptyState, Skeleton } from '@fitnexa/ui';
+import { Badge, Button, EmptyState, Skeleton } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { useSite } from '@/lib/site';
 import { useDashboard } from '@/lib/queries';
 import { GYM_ROUTES, PLATFORM_ROUTES, ROLE_LABEL, visibleNav } from '@/lib/nav';
 import { errorMessage } from '@/lib/errors';
 import { AppShell, type NavSection } from '@/components/shell/app-shell';
-import { FitnexaBrand, GymBrand } from '@/components/shell/brand';
+import { FitexaaBrand, GymBrand } from '@/components/shell/brand';
 import { ThemeToggle } from '@/components/shell/theme-toggle';
 import { SupportSessionBanner } from '@/components/support-session-banner';
 
@@ -55,8 +55,8 @@ function SignedInShell({ children }: { children: ReactNode }) {
 
   return (
     <AppShell
-      brand={site.scope === 'gym' ? <GymBrand name={gymName} logoUrl={logoUrl} /> : <FitnexaBrand />}
-      mobileBrand={site.scope === 'gym' ? <GymBrand name={gymName} logoUrl={logoUrl} size={26} /> : <FitnexaBrand size={26} subtitle={null} />}
+      brand={site.scope === 'gym' ? <GymBrand name={gymName} logoUrl={logoUrl} /> : <FitexaaBrand />}
+      mobileBrand={site.scope === 'gym' ? <GymBrand name={gymName} logoUrl={logoUrl} size={26} /> : <FitexaaBrand size={26} subtitle={null} />}
       nav={nav}
       isActive={(href) => (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`))}
       user={{ name: me.user.name, role: me.scope === 'platform' ? 'Super admin' : (ROLE_LABEL[me.user.role] ?? me.user.role) }}

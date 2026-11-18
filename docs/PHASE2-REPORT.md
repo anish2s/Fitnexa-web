@@ -5,7 +5,7 @@ _Prepared 2026-11-18 for the owner's sign-off. Covers milestones 0–5 and the P
 ## Summary
 
 The admin dashboard is built: every gym gets its own white-labelled dashboard on its subdomain, and
-Fitnexa gets a platform console on `admin.`. Milestones 0–5 were each approved from screenshots.
+Fitexaa gets a platform console on `admin.`. Milestones 0–5 were each approved from screenshots.
 The review findings are fixed:
 - **Rate limits:** visitors now get separate allowances, and the forwarded IP can't be forged.
 - **Lint:** ESLint is in every workspace and in CI.
@@ -40,7 +40,7 @@ Legend: ✅ verified in this pass · ✅ (M*n*) verified when that milestone was
 | 8 | npm workspaces: `apps/dashboard`, `packages/ui`, `packages/api-client` (request types generated from the backend's OpenAPI) | ✅ | `package.json`, `packages/api-client/src/schema.d.ts` (`npm run gen`) |
 | 9 | No business logic in the frontend; permission checks only hide UI | ✅ | Prices, balances, check-in rules and reports all come from the API. The new server page guards (#20) are on top of the API's checks, not instead of them |
 | 10 | Gym branding from `GET /public/tenant` drives CSS variables; dark + light; any gym colour readable (WCAG AA) | ✅ | `lib/brand.test.ts`: all demo colours, plus a sweep of 4,096 colours × 2 themes, all AA. E2E "gym branding comes from the host" and "branding re-themes the app" |
-| 11 | White-label: gym screens never show "Fitnexa" | ✅ | E2E asserts no "Fitnexa" on a gym host; the new 503 page has no product name |
+| 11 | White-label: gym screens never show "Fitexaa" | ✅ | E2E asserts no "Fitexaa" on a gym host; the new 503 page has no product name |
 | 12 | Access token in memory only; refresh via HttpOnly cookie | ✅ | E2E: empty web storage after reload, HttpOnly refresh cookie, support session leaves nothing in storage |
 | 13 | Money is integer paise, formatted at the edge | ✅ | `lib/format.test.ts`: ₹ formatting, Indian grouping, typed rupees to exact paise (`19.99` → 1999), round trips |
 
@@ -119,7 +119,7 @@ member staying on page one of the member list; it now searches for her.
 
 ## Changes in this pass
 
-- **fitnexa-web:**
+- **fitexaa-web:**
   - IP forwarding and the tenant cache
   - `proxy.ts` (503 and page guards)
   - retry policy
@@ -128,7 +128,7 @@ member staying on page one of the member list; it now searches for her.
   - `/auth/me` dropped from session restore
   - unit tests
   - docs: README, DEPLOYMENT, PROGRESS, this report
-- **fitnexa-backend:**
+- **fitexaa-backend:**
   - `TRUST_PROXY` takes proxy addresses (hop counts refused in production)
   - `GET /auth/session` (read-only role for the page guards)
   - tests: per-visitor limits, spoofing, env, session role

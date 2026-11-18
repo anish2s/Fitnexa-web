@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Mail } from 'lucide-react';
-import { Button, Input } from '@fitnexa/ui';
+import { Button, Input } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { errorMessage, errorRef } from '@/lib/errors';
 import { FormAlert } from '@/components/form-alert';

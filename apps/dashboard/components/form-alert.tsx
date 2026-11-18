@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
-import { cn } from '@fitnexa/ui';
+import { cn } from '@fitexaa/ui';
 
 const tones = {
   danger: { box: 'border-danger/40 bg-danger-soft', icon: <AlertCircle className="size-4 text-danger-text" /> },

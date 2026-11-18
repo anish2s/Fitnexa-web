@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import {
   ActionPill, ActionPillItem, AreaChart, Badge, Button, Card, CardBody, CardHeader, KpiCard, MiniBars, Segmented,
-} from '@fitnexa/ui';
+} from '@fitexaa/ui';
 import { PreviewShell, previewHref } from '../_components/preview-shell';
 import { AppShell } from '../_components/app-shell';
 import { SampleTag } from '../_components/sample-tag';

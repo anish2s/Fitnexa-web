@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
-import { Button, useToast } from '@fitnexa/ui';
+import { Button, useToast } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { errorMessage } from '@/lib/errors';
 

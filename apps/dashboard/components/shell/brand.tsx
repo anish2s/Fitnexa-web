@@ -23,7 +23,7 @@ export function GymBrand({ name, logoUrl, size = 32 }: { name: string; logoUrl?:
   );
 }
 
-export function FitnexaGlyph({ size = 32 }: { size?: number }) {
+export function FitexaaGlyph({ size = 32 }: { size?: number }) {
   return (
     <span className="flex shrink-0 items-center justify-center rounded-lg bg-accent text-on-accent shadow-1" style={{ width: size, height: size }} aria-hidden>
       <svg viewBox="0 0 24 24" style={{ width: size * 0.56, height: size * 0.56 }} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -35,13 +35,13 @@ export function FitnexaGlyph({ size = 32 }: { size?: number }) {
   );
 }
 
-/** Fitnexa wordmark: platform (super admin) side only. */
-export function FitnexaBrand({ subtitle = 'Platform console', size = 32 }: { subtitle?: string | null; size?: number }) {
+/** Fitexaa wordmark: platform (super admin) side only. */
+export function FitexaaBrand({ subtitle = 'Platform console', size = 32 }: { subtitle?: string | null; size?: number }) {
   return (
     <span className="flex items-center gap-2">
-      <FitnexaGlyph size={size} />
+      <FitexaaGlyph size={size} />
       <span className="leading-tight">
-        <span className="block text-md font-semibold tracking-tight text-fg">Fitnexa</span>
+        <span className="block text-md font-semibold tracking-tight text-fg">Fitexaa</span>
         {subtitle && <span className="block text-2xs text-subtle">{subtitle}</span>}
       </span>
     </span>

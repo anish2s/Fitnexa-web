@@ -3,11 +3,11 @@
 import { Suspense, useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle } from 'lucide-react';
-import { Skeleton } from '@fitnexa/ui';
+import { Skeleton } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { useSite } from '@/lib/site';
 import { safeNext } from '@/lib/errors';
-import { FitnexaGlyph, GymMark } from '@/components/shell/brand';
+import { FitexaaGlyph, GymMark } from '@/components/shell/brand';
 import { ThemeToggle } from '@/components/shell/theme-toggle';
 import { AuthBackdrop, AuthHero, AuthIntro } from '@/components/auth/auth-showcase';
 
@@ -49,10 +49,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             {site.scope === 'gym' ? (
               <GymMark name={site.tenant.name} logoUrl={site.tenant.branding.logoUrl} size={64} />
             ) : (
-              <FitnexaGlyph size={64} />
+              <FitexaaGlyph size={64} />
             )}
             <div className="min-w-0 leading-tight">
-              <p className="truncate text-2xl font-bold tracking-tight text-fg">{site.scope === 'gym' ? site.tenant.name : 'Fitnexa'}</p>
+              <p className="truncate text-2xl font-bold tracking-tight text-fg">{site.scope === 'gym' ? site.tenant.name : 'Fitexaa'}</p>
               <p className="mt-1 text-sm text-muted">{platform ? 'Platform console' : 'Be Fit. Live Better.'}</p>
             </div>
           </div>

@@ -4,7 +4,7 @@
  */
 import { cache } from 'react';
 import { cookies, headers } from 'next/headers';
-import type { Theme } from '@fitnexa/api-client';
+import type { Theme } from '@fitexaa/api-client';
 import { REFRESH_COOKIES, THEME_COOKIE } from './env';
 import { fetchHostContext, resolveHost, type HostContext } from './tenant-cache';
 

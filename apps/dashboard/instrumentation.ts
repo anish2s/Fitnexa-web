@@ -6,7 +6,7 @@
 export function register() {
   if (process.env.NODE_ENV === 'production' && !process.env.TRUSTED_PROXY_HOPS) {
     console.warn(
-      '[fitnexa] TRUSTED_PROXY_HOPS is not set: visitor IPs are taken from the connection. In production set it to the number ' +
+      '[fitexaa] TRUSTED_PROXY_HOPS is not set: visitor IPs are taken from the connection. In production set it to the number ' +
         'of proxies in front of this server (Cloudflare = 1) and keep the server reachable only through them.',
     );
   }

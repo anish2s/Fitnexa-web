@@ -1,9 +1,9 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
-import type { PublicTenant } from '@fitnexa/api-client';
+import type { PublicTenant } from '@fitexaa/api-client';
 
-/** The site this browser is on: one gym (white-label) or the Fitnexa platform console. */
+/** The site this browser is on: one gym (white-label) or the Fitexaa platform console. */
 export type Site = { scope: 'gym'; tenant: PublicTenant } | { scope: 'platform' };
 
 const SiteContext = createContext<Site | null>(null);

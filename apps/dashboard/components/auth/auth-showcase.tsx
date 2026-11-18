@@ -5,7 +5,7 @@ import { Activity, BarChart3, Building2, CreditCard, Dumbbell, ShieldCheck, User
 
 /**
  * Decorative pieces of the sign-in screens. Everything is tinted from the accent token, so a gym's
- * own colour drives the look (white-label) and the platform console gets the Fitnexa accent.
+ * own colour drives the look (white-label) and the platform console gets the Fitexaa accent.
  */
 
 /** Soft accent waves along the top-left and bottom edges of the page. */
@@ -47,7 +47,7 @@ export function AuthIntro({ platform }: { platform: boolean }) {
     <div className="max-w-[460px]">
       <span className="inline-flex items-center gap-2 rounded-full border border-accent-ring bg-accent-soft px-3.5 py-1.5 text-sm font-medium text-fg">
         <Activity className="size-4 text-accent-text" />
-        {platform ? 'Fitnexa platform console' : 'Your Fitness Journey Starts Here'}
+        {platform ? 'Fitexaa platform console' : 'Your Fitness Journey Starts Here'}
       </span>
       <h2 className="mt-6 text-[clamp(32px,2.6vw,44px)] leading-[1.15] font-bold tracking-tight text-fg">
         {platform ? 'Every Gym,' : 'Stronger Today,'}

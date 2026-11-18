@@ -1,6 +1,6 @@
-# Deployment: dashboard (fitnexa-web)
+# Deployment: dashboard (fitexaa-web)
 
-The API side (MongoDB, secrets, the API's own `TRUST_PROXY`) is in `../fitnexa-backend/docs/DEPLOYMENT.md`.
+The API side (MongoDB, secrets, the API's own `TRUST_PROXY`) is in `../fitexaa-backend/docs/DEPLOYMENT.md`.
 This page covers what the Next.js server needs so that gym detection, per-visitor rate limits and
 audit IPs stay correct and can't be spoofed.
 

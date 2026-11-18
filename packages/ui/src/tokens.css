@@ -1,5 +1,5 @@
 /*
- * Fitnexa design tokens.
+ * Fitexaa design tokens.
  * Themes are scoped to [data-theme], so a light block can sit inside a dark page (design preview).
  * The gym accent comes from brandVars() (brand.ts) as --brand-{dark|light}-*; each theme picks its set.
  * Components use only these semantic tokens (via Tailwind: bg-surface, text-muted, border-border…).

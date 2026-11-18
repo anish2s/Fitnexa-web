@@ -5,9 +5,9 @@ import {
   BarChart3, Bell, Building2, CalendarClock, CreditCard, LayoutDashboard, Moon, ScanLine, ScrollText, Search,
   Settings, ShieldCheck, Sun, Tag, UserCog, Users,
 } from 'lucide-react';
-import { Badge, Kbd } from '@fitnexa/ui';
+import { Badge, Kbd } from '@fitexaa/ui';
 import { AppShell as Shell, type NavSection } from '@/components/shell/app-shell';
-import { FitnexaBrand, GymBrand } from '@/components/shell/brand';
+import { FitexaaBrand, GymBrand } from '@/components/shell/brand';
 
 export type ShellKind = 'owner' | 'staff' | 'platform';
 
@@ -62,8 +62,8 @@ export function AppShell({
 }) {
   return (
     <Shell
-      brand={kind === 'platform' ? <FitnexaBrand /> : <GymBrand name={gymName} />}
-      mobileBrand={kind === 'platform' ? <FitnexaBrand size={26} subtitle={null} /> : <GymBrand name={gymName} size={26} />}
+      brand={kind === 'platform' ? <FitexaaBrand /> : <GymBrand name={gymName} />}
+      mobileBrand={kind === 'platform' ? <FitexaaBrand size={26} subtitle={null} /> : <GymBrand name={gymName} size={26} />}
       nav={navFor(kind)}
       isActive={(href) => href === `#${active}`}
       user={{ name: userName, role: userRole }}

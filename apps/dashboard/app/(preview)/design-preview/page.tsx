@@ -5,7 +5,7 @@ import {
   accentFor, ActionPill, ActionPillItem, Avatar, Badge, brandVars, Button, Card, CardBody, CardFooter, CardHeader,
   EmptyState, Input, KpiCard, ModalPanel, NavItem, Segmented, Select, Skeleton, Sparkline, Table, TBody, TD, TH, THead,
   ToastView, TR, TrendChip, type Theme,
-} from '@fitnexa/ui';
+} from '@fitexaa/ui';
 import { PreviewShell } from './_components/preview-shell';
 import { SampleTag } from './_components/sample-tag';
 import { ModalDemo, RecordPaymentForm, ToastDemo } from './_components/demos';

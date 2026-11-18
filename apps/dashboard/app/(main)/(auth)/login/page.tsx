@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Lock, LogIn, Mail, UserRound } from 'lucide-react';
-import { Button, Input } from '@fitnexa/ui';
+import { Button, Input } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { useSite } from '@/lib/site';
 import { errorMessage, errorRef } from '@/lib/errors';
@@ -63,7 +63,7 @@ function LoginForm() {
         label={platform ? 'Email' : 'Email or phone'}
         autoComplete="username"
         inputMode={platform ? 'email' : 'text'}
-        placeholder={platform ? 'you@fitnexa.in' : 'name@example.com or 98765 43210'}
+        placeholder={platform ? 'you@fitexaa.in' : 'name@example.com or 98765 43210'}
         leftIcon={<Mail />}
         className={field}
         error={formState.errors.identifier?.message}

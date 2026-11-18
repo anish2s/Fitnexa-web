@@ -3,8 +3,8 @@
 import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Camera, Trash2 } from 'lucide-react';
-import { Avatar, Button, Spinner, useToast } from '@fitnexa/ui';
-import type { MemberDetail } from '@fitnexa/api-client';
+import { Avatar, Button, Spinner, useToast } from '@fitexaa/ui';
+import type { MemberDetail } from '@fitexaa/api-client';
 import { useAuth } from '@/lib/auth';
 import { actionMessage } from '@/lib/errors';
 import { IMAGE_TYPES, imageProblem, uploadImage, UploadFailed } from '@/lib/upload';

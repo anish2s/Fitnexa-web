@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import { Building2, CircleAlert, Clock, LogIn, MoreHorizontal, Plus, Search, Users } from 'lucide-react';
 import {
   Badge, Button, Card, Input, KpiCard, Select, Table, TBody, TD, TH, THead, TR, type BadgeTone,
-} from '@fitnexa/ui';
+} from '@fitexaa/ui';
 import { PreviewShell, previewHref } from '../_components/preview-shell';
 import { AppShell } from '../_components/app-shell';
 import { SampleTag } from '../_components/sample-tag';
 import { PLATFORM_GYMS, parseParams } from '../_lib/sample';
 
-export const metadata: Metadata = { title: 'Fitnexa · Gyms · Design preview' };
+export const metadata: Metadata = { title: 'Fitexaa · Gyms · Design preview' };
 
 const STATUS: Record<string, { label: string; tone: BadgeTone }> = {
   active: { label: 'Active', tone: 'success' },
@@ -52,7 +52,7 @@ export default async function PlatformGyms({ searchParams }: { searchParams: Pro
                 <h1 className="text-2xl font-semibold tracking-tight">Gyms</h1>
                 <SampleTag />
               </div>
-              <p className="mt-1 text-sm text-muted">Every gym on Fitnexa. Each runs on its own subdomain.</p>
+              <p className="mt-1 text-sm text-muted">Every gym on Fitexaa. Each runs on its own subdomain.</p>
             </div>
             <Button leftIcon={<Plus className="size-4" />}>Create gym</Button>
           </div>

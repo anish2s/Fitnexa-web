@@ -5,7 +5,7 @@ import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Archive } from 'lucide-react';
-import { buttonClasses, Card, EmptyState, Skeleton, useToast } from '@fitnexa/ui';
+import { buttonClasses, Card, EmptyState, Skeleton, useToast } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { useMember } from '@/lib/queries';
 import { errorMessage } from '@/lib/errors';

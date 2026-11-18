@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Wallet } from 'lucide-react';
-import { Button, Input, Modal, Select, useToast } from '@fitnexa/ui';
+import { Button, Input, Modal, Select, useToast } from '@fitexaa/ui';
 
 export function RecordPaymentForm() {
   return (

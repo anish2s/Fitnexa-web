@@ -1,6 +1,6 @@
 'use client';
 
-import type { ApiClient } from '@fitnexa/api-client';
+import type { ApiClient } from '@fitexaa/api-client';
 
 /**
  * Opens a payment's PDF receipt in a new tab. The PDF needs the bearer token, so it is fetched here

@@ -8,8 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, ArrowLeft, Building2, ExternalLink, IndianRupee, LogIn, MailPlus, PauseCircle, PlayCircle, ShieldAlert } from 'lucide-react';
-import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Input, Select, Skeleton, Textarea, useToast, cn, type BadgeTone } from '@fitnexa/ui';
-import { ApiError, type ApiClient, type GymView, type PlatformTenantDetail } from '@fitnexa/api-client';
+import { Badge, Button, Card, CardBody, CardHeader, EmptyState, Input, Select, Skeleton, Textarea, useToast, cn, type BadgeTone } from '@fitexaa/ui';
+import { ApiError, type ApiClient, type GymView, type PlatformTenantDetail } from '@fitexaa/api-client';
 import { useAuth } from '@/lib/auth';
 import { actionMessage, errorMessage, errorRef } from '@/lib/errors';
 import { fullDate, inr, num, paiseToRupees, phone, rupeesToPaise, timeAgo } from '@/lib/format';
@@ -106,7 +106,7 @@ function SubscriptionForm({ gym, onSaved }: { gym: GymView; onSaved: (g: GymView
   });
   return (
     <Card>
-      <CardHeader title="Fitnexa subscription" description="What this gym pays the platform. Owners don’t see this." />
+      <CardHeader title="Fitexaa subscription" description="What this gym pays the platform. Owners don’t see this." />
       <CardBody>
         <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {failure && <FormAlert tone="danger" message={failure.message} reference={failure.ref} className="sm:col-span-2 lg:col-span-4" />}

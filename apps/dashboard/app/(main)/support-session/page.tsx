@@ -3,8 +3,8 @@
 import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { notFound, useRouter, useSearchParams } from 'next/navigation';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
-import { Button, Card, Spinner } from '@fitnexa/ui';
-import type { SessionUser } from '@fitnexa/api-client';
+import { Button, Card, Spinner } from '@fitexaa/ui';
+import type { SessionUser } from '@fitexaa/api-client';
 import { useAuth } from '@/lib/auth';
 import { useSite } from '@/lib/site';
 import { errorMessage } from '@/lib/errors';

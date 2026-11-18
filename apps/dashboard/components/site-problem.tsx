@@ -1,5 +1,5 @@
 import { CloudOff, SearchX } from 'lucide-react';
-import { EmptyState } from '@fitnexa/ui';
+import { EmptyState } from '@fitexaa/ui';
 
 /** Shown instead of the app when the host isn't a known gym, or the API can't be reached. */
 export function SiteProblem({ kind, host }: { kind: 'not_found' | 'unavailable'; host: string }) {

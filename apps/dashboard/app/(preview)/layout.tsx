@@ -5,7 +5,7 @@ import { GeistMono } from 'geist/font/mono';
 import '../globals.css';
 
 // Design preview (Milestone 0): sample data only, independent of the API and of the host's gym.
-// Off in production unless ENABLE_DESIGN_PREVIEW=true, so gym domains never show Fitnexa's preview.
+// Off in production unless ENABLE_DESIGN_PREVIEW=true, so gym domains never show Fitexaa's preview.
 export const metadata: Metadata = { title: 'Design preview', robots: { index: false } };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
 

@@ -7,8 +7,8 @@ export const THEME_COOKIE = 'fx_theme';
 /** The backend's refresh cookie names (dev / production). Only checked for presence, never read. */
 export const REFRESH_COOKIES = ['gym_rt', '__Host-gym_rt'];
 
-/** Fitnexa's own accent: platform (super admin) console only. Gym screens use the gym's colour. */
-export const FITNEXA_ACCENT = '#6366F1';
+/** Fitexaa's own accent: platform (super admin) console only. Gym screens use the gym's colour. */
+export const FITEXAA_ACCENT = '#6366F1';
 
 /**
  * How many proxies in front of this server append to X-Forwarded-For (Cloudflare = 1; Cloudflare plus

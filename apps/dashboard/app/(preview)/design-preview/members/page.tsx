@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { ChevronLeft, ChevronRight, Download, MoreHorizontal, Search, Smartphone, Upload, UserPlus } from 'lucide-react';
 import {
   Avatar, Badge, Button, Card, Input, Segmented, Select, Table, TBody, TD, TH, THead, TR, type BadgeTone,
-} from '@fitnexa/ui';
+} from '@fitexaa/ui';
 import { PreviewShell, previewHref } from '../_components/preview-shell';
 import { AppShell } from '../_components/app-shell';
 import { SampleTag } from '../_components/sample-tag';

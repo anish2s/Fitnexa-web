@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
-import { useToast } from '@fitnexa/ui';
+import { useToast } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { RequirePermission } from '@/components/require-permission';
 import { PageHeader } from '@/components/page-header';

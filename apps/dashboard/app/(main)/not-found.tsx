@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { SearchX } from 'lucide-react';
-import { buttonClasses, EmptyState } from '@fitnexa/ui';
+import { buttonClasses, EmptyState } from '@fitexaa/ui';
 
 export default function NotFound() {
   return (

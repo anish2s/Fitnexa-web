@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { AA_NON_TEXT, AA_TEXT, accentFor, brandVars, contrast, THEME_SURFACES } from '@fitnexa/ui/brand';
-import { FITNEXA_ACCENT } from './env';
+import { AA_NON_TEXT, AA_TEXT, accentFor, brandVars, contrast, THEME_SURFACES } from '@fitexaa/ui/brand';
+import { FITEXAA_ACCENT } from './env';
 
 // The root layout puts brandVars(gym colour) on <html>; these are the colours every gym screen uses.
 
-test('demo gyms and the Fitnexa console accent are AA-readable in both themes', () => {
-  for (const colour of ['#E11D48', '#0EA5E9', '#7C3AED', '#16A34A', '#2563EB', FITNEXA_ACCENT]) {
+test('demo gyms and the Fitexaa console accent are AA-readable in both themes', () => {
+  for (const colour of ['#E11D48', '#0EA5E9', '#7C3AED', '#16A34A', '#2563EB', FITEXAA_ACCENT]) {
     const v = brandVars(colour);
     for (const t of ['dark', 'light'] as const) {
       const { bg, surface } = THEME_SURFACES[t];

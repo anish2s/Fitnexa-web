@@ -7,7 +7,7 @@
  *   and a real outage shows its error within about a second.
  * - Anything that isn't an API error is a bug in this app: not retried.
  */
-import { ApiError } from '@fitnexa/api-client';
+import { ApiError } from '@fitexaa/api-client';
 
 export const MAX_RETRIES = 2;
 const BASE_DELAY_MS = 250;

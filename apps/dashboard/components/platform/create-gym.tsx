@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle2, ExternalLink, IndianRupee, Mail, Phone, XCircle } from 'lucide-react';
-import { Button, buttonClasses, Card, CardBody, Input, normalizeHex, Segmented, Select, Spinner } from '@fitnexa/ui';
-import { ApiError, type TenantCreated, type Theme } from '@fitnexa/api-client';
+import { Button, buttonClasses, Card, CardBody, Input, normalizeHex, Segmented, Select, Spinner } from '@fitexaa/ui';
+import { ApiError, type TenantCreated, type Theme } from '@fitexaa/api-client';
 import { useAuth } from '@/lib/auth';
 import { applyFieldErrors, actionMessage, errorRef } from '@/lib/errors';
 import { rupeesToPaise } from '@/lib/format';
@@ -214,7 +214,7 @@ export function CreateGym() {
           </div>
         </Section>
 
-        <Section title="Subscription" description="What this gym pays Fitnexa. Visible only on the platform.">
+        <Section title="Subscription" description="What this gym pays Fitexaa. Visible only on the platform.">
           <Select label="Status" options={[{ value: 'trialing', label: 'Trial' }, { value: 'active', label: 'Paid' }, { value: 'past_due', label: 'Past due' }, { value: 'cancelled', label: 'Cancelled' }]} {...register('subscriptionStatus')} />
           <Input label="Plan code" placeholder="pilot" error={errors.planCode?.message} {...register('planCode')} />
           <Input label="Monthly price" inputMode="decimal" leftIcon={<IndianRupee />} placeholder="999" error={errors.price?.message} {...register('price')} />

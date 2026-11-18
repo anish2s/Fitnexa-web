@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
-import { brandVars } from '@fitnexa/ui';
-import { FITNEXA_ACCENT } from '@/lib/env';
+import { brandVars } from '@fitexaa/ui';
+import { FITEXAA_ACCENT } from '@/lib/env';
 import { getHostContext, getInitialTheme, hasRefreshCookie } from '@/lib/host-context';
 import { Providers } from '@/components/providers';
 import { SiteProblem } from '@/components/site-problem';
@@ -10,10 +10,10 @@ import '../globals.css';
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
 
-/** White-label: gym hosts are titled with the gym's name only; Fitnexa appears on the platform host. */
+/** White-label: gym hosts are titled with the gym's name only; Fitexaa appears on the platform host. */
 export async function generateMetadata(): Promise<Metadata> {
   const ctx = await getHostContext();
-  const site = ctx.scope === 'gym' ? ctx.tenant.name : ctx.scope === 'platform' ? 'Fitnexa' : 'Dashboard';
+  const site = ctx.scope === 'gym' ? ctx.tenant.name : ctx.scope === 'platform' ? 'Fitexaa' : 'Dashboard';
   const icon = ctx.scope === 'gym' ? ctx.tenant.branding.appIconUrl ?? ctx.tenant.branding.logoUrl : null;
   return {
     title: { default: site, template: `%s · ${site}` },
@@ -29,7 +29,7 @@ const SYSTEM_THEME_SCRIPT = `try{document.documentElement.dataset.theme=matchMed
 export default async function MainRootLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getHostContext();
   const { theme, followSystem } = await getInitialTheme(ctx);
-  const accent = ctx.scope === 'gym' ? ctx.tenant.branding.primaryColor : FITNEXA_ACCENT;
+  const accent = ctx.scope === 'gym' ? ctx.tenant.branding.primaryColor : FITEXAA_ACCENT;
 
   return (
     <html

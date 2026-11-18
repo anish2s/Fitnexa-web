@@ -2,7 +2,7 @@
  * SAMPLE DATA for the Milestone 0 design preview only. Every name, number and gym here is made up.
  * Shapes follow the backend responses (docs/API.md) so the mock-ups show realistic content.
  */
-import type { Theme } from '@fitnexa/ui';
+import type { Theme } from '@fitexaa/ui';
 
 export type GymKey = 'rose' | 'sky';
 
@@ -37,8 +37,8 @@ export const SAMPLE_GYMS: Record<GymKey, SampleGym> = {
   },
 };
 
-/** Fitnexa's own platform accent (super admin console only). Proposal; open to change. */
-export const FITNEXA_ACCENT = '#6366F1';
+/** Fitexaa's own platform accent (super admin console only). Proposal; open to change. */
+export const FITEXAA_ACCENT = '#6366F1';
 
 export interface PreviewParams {
   theme: Theme;

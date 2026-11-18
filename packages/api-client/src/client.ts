@@ -1,5 +1,5 @@
 /**
- * Fitnexa API client.
+ * Fitexaa API client.
  *
  * - Talks to the same origin (`/api/v1/...`); the Next.js app proxies to the backend and forwards the
  *   host so the backend knows which gym this is.

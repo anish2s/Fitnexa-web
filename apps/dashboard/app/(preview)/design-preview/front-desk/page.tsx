@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { CalendarClock, CheckCircle2, Clock, MessageCircle, QrCode, RefreshCw, ScanLine, Search, Wallet, XCircle } from 'lucide-react';
-import { Avatar, Badge, Button, Card, CardBody, CardHeader, Input, Kbd } from '@fitnexa/ui';
+import { Avatar, Badge, Button, Card, CardBody, CardHeader, Input, Kbd } from '@fitexaa/ui';
 import { PreviewShell, previewHref } from '../_components/preview-shell';
 import { AppShell } from '../_components/app-shell';
 import { SampleTag } from '../_components/sample-tag';

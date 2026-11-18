@@ -13,4 +13,4 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
       - run: npm test
-      # End-to-end tests need the API and a seeded database (fitnexa-backend); see README.
+      # End-to-end tests need the API and a seeded database (fitexaa-backend); see README.

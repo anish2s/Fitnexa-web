@@ -1,4 +1,4 @@
-# Progress — fitnexa-web (Phase 2: admin dashboard)
+# Progress — fitexaa-web (Phase 2: admin dashboard)
 
 Each milestone ends with screenshots and stops for the owner's approval.
 
@@ -45,7 +45,7 @@ Phase 2 completion report (every gate item with evidence): [PHASE2-REPORT.md](PH
 - **Gyms list**: "New gym", rows open the gym.
 - **New gym** (`/gyms/new`): name; web address suggested from the name and checked live
   (available / taken / reserved / invalid); city, phone, email; owner (name, email for the invite,
-  phone); brand colour and default theme; Fitnexa subscription (status, plan code, monthly price).
+  phone); brand colour and default theme; Fitexaa subscription (status, plan code, monthly price).
   Result page with the gym's link and whether the owner invite was sent (resend from the gym page).
 - **Gym page** (`/gyms/:id`): header with status/subscription, link to the gym's site,
   **Log in as owner**, **Suspend** (reason) / **Reactivate**; tabs: Overview (owners with invite
@@ -192,7 +192,7 @@ Scope confirmed with the owner: Razorpay online payments included now; QR by cam
   sort; paging. Search, filters, sort and page live in the URL, so Back from a profile returns to the
   same list. Table on tablet/desktop, stacked rows on phones. Member-app access shown per member.
   (Uses the backend's `membership`/`balanceDuePaise` list fields and `status`/`due` filters, added
-  2026-11-18 in fitnexa-backend `a20e7ab`.)
+  2026-11-18 in fitexaa-backend `a20e7ab`.)
 - **Add member** (`/members/new`): name, phone, email, gender, date of birth, join date (back-dating
   allowed), emergency contact, staff notes, and the **consent** step: the front desk reads the wording
   to the member and ticks the box; the API stores time, wording version (`v1`) and who recorded it.
@@ -244,7 +244,7 @@ Scope confirmed with the owner: Razorpay online payments included now; QR by cam
   retry, idempotency keys reused across the retry, non-refreshable impersonation tokens.
 - Same-origin `/api/*` proxy forwarding `X-Forwarded-Host`, cookies, `Origin` (backend CSRF check).
 - Server-side site resolution from the host: gym branding (name, logo, colour, default theme, title)
-  on first paint; Fitnexa branding on the platform host; "Gym not found"; "service unavailable".
+  on first paint; Fitexaa branding on the platform host; "Gym not found"; "service unavailable".
 - Sign in (email or phone + password), forgot password, reset password (also accepts staff/owner
   invites), suspended-gym notice, friendly messages for every auth error code, `?next=` return
   (open-redirect safe).

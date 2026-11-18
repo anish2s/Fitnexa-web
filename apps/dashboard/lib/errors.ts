@@ -1,4 +1,4 @@
-import { ApiError } from '@fitnexa/api-client';
+import { ApiError } from '@fitexaa/api-client';
 
 /** Plain-language messages for API error codes shown on forms. Falls back to the server message. */
 const MESSAGES: Record<string, string> = {

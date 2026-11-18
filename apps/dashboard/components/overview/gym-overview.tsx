@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, ArrowUpRight, CalendarClock, IndianRupee, MessageCircle, ScanLine, UserPlus, Users, Wallet } from 'lucide-react';
 import {
   ActionPill, ActionPillItem, AreaChart, Badge, Button, buttonClasses, Card, CardBody, CardHeader, EmptyState, KpiCard, MiniBars, Skeleton,
-} from '@fitnexa/ui';
+} from '@fitexaa/ui';
 import { useAuth, useMe } from '@/lib/auth';
 import { useDashboard } from '@/lib/queries';
 import {

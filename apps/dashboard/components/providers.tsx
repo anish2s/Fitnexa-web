@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ToastProvider } from '@fitnexa/ui';
+import { ToastProvider } from '@fitexaa/ui';
 import { AuthProvider } from '@/lib/auth';
 import { SiteProvider, type Site } from '@/lib/site';
 import { retryDelay, shouldRetry } from '@/lib/retry';

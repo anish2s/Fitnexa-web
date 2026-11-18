@@ -1,4 +1,4 @@
-# Design direction — Fitnexa (Phase 2 & 3)
+# Design direction — Fitexaa (Phase 2 & 3)
 
 Recorded from the two reference dashboards you shared on 2026-11-12. To be turned into a full design
 system and approved by you before Phase 2 work begins (brief §23 K).
@@ -52,7 +52,7 @@ Switch theme and gym colour with `?theme=dark|light&gym=rose|sky`. Screenshots: 
 - **Components:** Button, Input, Select (native), Table, Card, KpiCard + Sparkline, AreaChart, MiniBars,
   Badge, TrendChip, Modal (native `<dialog>`, bottom sheet on phones), Toast, Skeleton, EmptyState,
   Avatar, ActionPill, Segmented, NavItem.
-- **White-label:** gym screens show only the gym's name, logo and colour. Fitnexa's own mark and accent
+- **White-label:** gym screens show only the gym's name, logo and colour. Fitexaa's own mark and accent
   (proposed `#6366F1`) appear only in the platform console.
 - **Mobile:** sidebar becomes a drawer; list tables become stacked rows; platform table hides
   secondary columns; no horizontal page scroll at 390 px.

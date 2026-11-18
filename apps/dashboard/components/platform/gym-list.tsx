@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { AlertTriangle, Building2, ChevronLeft, ChevronRight, ChevronRight as Go, Plus, Search } from 'lucide-react';
-import { Badge, Button, buttonClasses, Card, EmptyState, Input, Select, Skeleton, Table, TBody, TD, TH, THead, TR, type BadgeTone } from '@fitnexa/ui';
+import { Badge, Button, buttonClasses, Card, EmptyState, Input, Select, Skeleton, Table, TBody, TD, TH, THead, TR, type BadgeTone } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { useDebounced } from '@/lib/use-debounced';
 import { fullDate, num } from '@/lib/format';
@@ -51,7 +51,7 @@ export function PlatformGymList() {
     <div className="mx-auto flex max-w-7xl flex-col gap-5">
       <PageHeader
         title="Gyms"
-        description="Every gym on Fitnexa. Each one runs on its own subdomain."
+        description="Every gym on Fitexaa. Each one runs on its own subdomain."
         actions={<Link href="/gyms/new" className={buttonClasses({ className: 'max-sm:flex-1' })}><Plus className="size-4" /> New gym</Link>}
       />
 

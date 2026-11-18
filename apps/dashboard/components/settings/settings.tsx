@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { cn } from '@fitnexa/ui';
+import { cn } from '@fitexaa/ui';
 import { useAuth } from '@/lib/auth';
 import { useSite } from '@/lib/site';
 import { PageHeader } from '@/components/page-header';

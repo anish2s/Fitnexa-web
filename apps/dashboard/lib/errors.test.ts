@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ApiError } from '@fitnexa/api-client';
+import { ApiError } from '@fitexaa/api-client';
 import { actionMessage, applyFieldErrors, errorMessage, errorRef, safeNext } from './errors';
 import { MAX_RETRY_WAIT_MS, retryDelay, shouldRetry } from './retry';
 

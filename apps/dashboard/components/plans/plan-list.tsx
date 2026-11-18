@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Archive, ArchiveRestore, Pencil, Plus, Tag } from 'lucide-react';
-import { Badge, Button, Card, EmptyState, Segmented, Skeleton, useToast } from '@fitnexa/ui';
-import type { Plan } from '@fitnexa/api-client';
+import { Badge, Button, Card, EmptyState, Segmented, Skeleton, useToast } from '@fitexaa/ui';
+import type { Plan } from '@fitexaa/api-client';
 import { useAuth } from '@/lib/auth';
 import { useGym } from '@/lib/queries';
 import { inr, MONTHS_LABEL, TAX_LABEL } from '@/lib/format';

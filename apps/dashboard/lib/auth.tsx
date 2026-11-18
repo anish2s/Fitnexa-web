@@ -9,7 +9,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ApiError, createApiClient, type ApiClient, type Me, type Session, type SessionUser } from '@fitnexa/api-client';
+import { ApiError, createApiClient, type ApiClient, type Me, type Session, type SessionUser } from '@fitexaa/api-client';
 import { useSite, type Site } from './site';
 
 type AuthState =

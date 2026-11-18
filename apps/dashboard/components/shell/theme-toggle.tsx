@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { cn } from '@fitnexa/ui';
+import { cn } from '@fitexaa/ui';
 
 const COOKIE = 'fx_theme';
 

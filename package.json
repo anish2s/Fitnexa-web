@@ -1,12 +1,12 @@
 {
-  "name": "fitnexa-web",
+  "name": "fitexaa-web",
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "engines": { "node": ">=20.9" },
   "scripts": {
-    "dev": "npm run dev -w @fitnexa/dashboard",
-    "build": "npm run build -w @fitnexa/dashboard",
-    "start": "npm run start -w @fitnexa/dashboard",
+    "dev": "npm run dev -w @fitexaa/dashboard",
+    "build": "npm run build -w @fitexaa/dashboard",
+    "start": "npm run start -w @fitexaa/dashboard",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"

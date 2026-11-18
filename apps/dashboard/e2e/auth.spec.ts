@@ -11,7 +11,7 @@ test('gym branding comes from the host (white-label)', async ({ page }) => {
   await page.goto(`${GYM}/login`);
   await expect(page).toHaveTitle('Powerhouse Fitness');
   await expect(page.locator('body')).toContainText('Powerhouse Fitness');
-  await expect(page.getByText('Fitnexa')).toHaveCount(0);
+  await expect(page.getByText('Fitexaa')).toHaveCount(0);
   const accent = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--brand-dark-accent').trim());
   expect(accent).toBe('#E11D48');
 });
@@ -67,9 +67,9 @@ test('owner can sign in with a phone number; gym default theme applies', async (
   await expect(page.getByText('Monthly revenue')).toBeVisible();
 });
 
-test('platform console: Fitnexa brand, gym list, and no access on gym hosts', async ({ page }) => {
+test('platform console: Fitexaa brand, gym list, and no access on gym hosts', async ({ page }) => {
   await page.goto(`${PLATFORM}/login`);
-  await expect(page).toHaveTitle('Fitnexa');
+  await expect(page).toHaveTitle('Fitexaa');
   await fillSignIn(page, 'admin@platform.demo');
   await expect(page.getByRole('heading', { name: 'Gyms' })).toBeVisible();
   await expect(page.locator('tbody tr').first()).toBeVisible();

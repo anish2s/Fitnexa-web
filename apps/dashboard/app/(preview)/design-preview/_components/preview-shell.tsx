@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { brandVars, cn, ToastProvider } from '@fitnexa/ui';
-import { FITNEXA_ACCENT, SAMPLE_GYMS, type PreviewParams } from '../_lib/sample';
+import { brandVars, cn, ToastProvider } from '@fitexaa/ui';
+import { FITEXAA_ACCENT, SAMPLE_GYMS, type PreviewParams } from '../_lib/sample';
 
 export type PreviewPage = '' | 'owner' | 'members' | 'front-desk' | 'platform';
 
@@ -24,7 +24,7 @@ export function previewHref(page: PreviewPage, p: { theme: string; gym: string }
 export function PreviewShell({ params, page, children }: { params: PreviewParams; page: PreviewPage; children: ReactNode }) {
   const { theme, gym } = params;
   const cur = { theme, gym: gym.key };
-  const accent = page === 'platform' ? FITNEXA_ACCENT : gym.primaryColor;
+  const accent = page === 'platform' ? FITEXAA_ACCENT : gym.primaryColor;
   return (
     <div data-theme={theme} style={brandVars(accent) as React.CSSProperties} className="min-h-dvh bg-bg text-fg">
       <ToastProvider>

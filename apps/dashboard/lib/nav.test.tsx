@@ -4,7 +4,7 @@ import { GYM_ROUTES, PLATFORM_ROUTES, visibleNav } from './nav';
 
 /**
  * Role → menu. Permission sets as GET /auth/me returns them, copied from the backend's
- * ROLE_PERMISSIONS (fitnexa-backend src/auth/permissions.ts); the menu shows only what they unlock.
+ * ROLE_PERMISSIONS (fitexaa-backend src/auth/permissions.ts); the menu shows only what they unlock.
  */
 const STAFF = [
   'gym:read', 'members:read', 'members:create', 'members:update', 'plans:read', 'memberships:read',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Button, Modal } from '@fitnexa/ui';
+import { Button, Modal } from '@fitexaa/ui';
 import { actionMessage, errorRef } from '@/lib/errors';
 import { FormAlert } from './form-alert';
 

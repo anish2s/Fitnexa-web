@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { CameraOff, SwitchCamera } from 'lucide-react';
-import { Button, Modal, Spinner } from '@fitnexa/ui';
+import { Button, Modal, Spinner } from '@fitexaa/ui';
 
 type ScannerInstance = { start(): Promise<void>; stop(): void; destroy(): void; setCamera(id: string): Promise<void> };
 
