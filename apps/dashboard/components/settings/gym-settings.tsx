@@ -84,7 +84,11 @@ function Section({ title, description, children }: { title: string; description?
   );
 }
 
-function GymForm({ gym }: { gym: GymView }) {
+/**
+ * Gym details form. `save` defaults to the owner's PATCH /gym; the platform console passes its own
+ * (PATCH /platform/tenants/:id) and gets the same form.
+ */
+export function GymForm({ gym, save }: { gym: GymView; save?: (body: Record<string, unknown>) => Promise<GymView> }) {
   const { api } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -103,13 +107,13 @@ function GymForm({ gym }: { gym: GymView }) {
     const body = diff(v, before);
     if (Object.keys(body).length === 0) return toast.show({ tone: 'info', title: 'Nothing changed' });
     try {
-      const { data } = await api.patch('/api/v1/gym', { body: body as never });
-      queryClient.setQueryData(['gym'], data);
+      const data = save ? await save(body) : (await api.patch('/api/v1/gym', { body: body as never })).data;
+      if (!save) queryClient.setQueryData(['gym'], data);
       const next = initial(data);
       setBefore(next);
       reset(next);
       toast.show({ tone: 'success', title: 'Gym details saved' });
-      if (body.name) router.refresh(); // the name is in the page title and sidebar (server-rendered)
+      if (body.name && !save) router.refresh(); // the name is in the page title and sidebar (server-rendered)
     } catch (err) {
       if (!applyFieldErrors(err, setError, FIELDS)) setFailure({ message: actionMessage(err), ref: errorRef(err) });
     }

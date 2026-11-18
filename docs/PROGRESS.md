@@ -9,9 +9,54 @@ Each milestone ends with screenshots and stops for the owner's approval.
 | 2 | Members & plans: list/search, register (with consent), profile, edit/archive, CSV import, plans | ✅ Approved 2026-11-18 |
 | 3 | Front desk & money: check-in (QR + manual), sell/renew memberships, payments, receipts, refunds, renewals | ✅ Approved 2026-11-18 |
 | 4 | Owner tools: reports, staff & permissions, gym settings & branding, audit log, account & sessions | ✅ Approved 2026-11-18 |
-| 5 | Platform console: create/suspend gyms, owner invites, "log in as owner", platform audit log | 🔨 In progress |
+| 5 | Platform console: create/suspend gyms, owner invites, "log in as owner", platform audit log | ✅ Approved 2026-11-18 |
 
 Milestones 2–5 are a proposal; scope is confirmed at the start of each.
+
+## Milestone 5 — Platform console (2026-11-18)
+
+**Built** (platform host, super admin only; gym hosts answer 404)
+- **Gyms list**: "New gym", rows open the gym.
+- **New gym** (`/gyms/new`): name; web address suggested from the name and checked live
+  (available / taken / reserved / invalid); city, phone, email; owner (name, email for the invite,
+  phone); brand colour and default theme; Fitnexa subscription (status, plan code, monthly price).
+  Result page with the gym's link and whether the owner invite was sent (resend from the gym page).
+- **Gym page** (`/gyms/:id`): header with status/subscription, link to the gym's site,
+  **Log in as owner**, **Suspend** (reason) / **Reactivate**; tabs: Overview (owners with invite
+  status and resend, account counts, subscription, details), Details (the owner's gym form, saved
+  through the platform API, plus the subscription), Branding (colour/theme with the contrast preview;
+  logo uploads stay on the gym's own site), Audit log (that gym's log).
+- **Log in as owner**: reason required (≥ 10 chars). The console opens the gym's site in a new tab;
+  that tab says "ready" to its opener; the console checks the message came from that tab at the gym's
+  origin, then posts the token to that origin only. The gym tab adopts it in memory (never in the URL or
+  storage), confirms with `/auth/me` that it is a support session, and shows the permanent banner. It
+  can't be refreshed: a reload, the 15-minute expiry or **End session** ends it for that tab only, without
+  touching other tabs or the owner's own sign-in, and shows "Support session ended". Password change,
+  sign-out-everywhere and Razorpay changes are blocked in that session (API and UI).
+- **Platform audit log** (`/audit-log` on the platform host): console sign-ins.
+- **Settings** on the platform host: "My account" (password, devices).
+- Super admins have no `role` on `/auth/me`; the console uses `scope: "platform"` and shows "Super admin".
+
+**Verified**
+- End-to-end: 27 tests passing (+3): create a gym (address suggestion, reserved address refused),
+  edit details, rebrand, suspend (the gym's own login page shows access paused) and reactivate, audit
+  entry; log in as owner (reason required, new tab with banner, nothing in web storage, reload ends it,
+  password change blocked, End session, audit entry); platform audit log; gym users can't reach console
+  pages or start a support session by hand.
+- Unit 15; typecheck and production build clean; no horizontal scroll at 390 px.
+- One owner-tools test failed once during a full run and passed in 4 re-runs (likely a dev-server
+  compile pause); watch for it.
+
+**Notes for the backend**
+- `appUrl` (from `GYM_APP_URL_TEMPLATE`) is `http://<slug>.localhost:3000` locally while the dashboard
+  runs on another port; the console builds links from the gym's host plus its own protocol/port, which
+  is right in production too. Same template feeds the Razorpay webhook URL and invite links: check it in
+  production.
+- `GET /auth/me` for a super admin has no `user.role` (the type says it's required); consider adding
+  `role: "super_admin"`.
+- `GET /attendance/report` / dashboard `attendanceToday.rate` can exceed 100% when members whose
+  memberships were cancelled the same day have checked in (rate = check-ins ÷ members active now).
+- Gyms can't be deleted; e2e runs create `E2E Gym <n>` gyms, which were suspended afterwards.
 
 ## Milestone 4 — Owner tools (2026-11-18)
 

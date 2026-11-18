@@ -182,7 +182,7 @@ export function AccountSettings() {
         <CardBody>
           <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div><dt className="text-muted">Name</dt><dd className="mt-0.5 font-medium">{me.user.name}</dd></div>
-            <div><dt className="text-muted">Role</dt><dd className="mt-0.5 font-medium">{ROLE_LABEL[me.user.role] ?? me.user.role}</dd></div>
+            <div><dt className="text-muted">Role</dt><dd className="mt-0.5 font-medium">{me.scope === 'platform' ? 'Super admin' : (ROLE_LABEL[me.user.role] ?? me.user.role)}</dd></div>
             <div className="min-w-0"><dt className="text-muted">Email</dt><dd className="mt-0.5 truncate font-medium">{me.user.email ?? '—'}</dd></div>
             <div><dt className="text-muted">Phone</dt><dd className="mt-0.5 font-medium tabular-nums">{phone(me.user.phone)}</dd></div>
           </dl>

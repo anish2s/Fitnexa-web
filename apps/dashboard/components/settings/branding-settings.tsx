@@ -73,7 +73,12 @@ function ImageSlot({ label, hint, url, square, onUpload, onRemove }: { label: st
   );
 }
 
-function BrandingForm({ gym }: { gym: GymView }) {
+/**
+ * Branding form. On the gym's own site it saves with PATCH /gym/branding and re-themes the app; the
+ * platform console passes `saveVia` (PATCH /platform/tenants/:id/branding) and hides uploads, which
+ * only work on the gym's own host.
+ */
+export function BrandingForm({ gym, saveVia }: { gym: GymView; saveVia?: (body: Record<string, unknown>) => Promise<GymView> }) {
   const { api } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -88,6 +93,11 @@ function BrandingForm({ gym }: { gym: GymView }) {
 
   /** Saves branding and re-renders the server layout so the whole app picks up the change. */
   async function patch(body: Record<string, unknown>, success: string) {
+    if (saveVia) {
+      const data = await saveVia(body);
+      toast.show({ tone: 'success', title: success });
+      return data;
+    }
     const { data } = await api.patch('/api/v1/gym/branding', { body: body as never });
     queryClient.setQueryData(['gym'], data);
     router.refresh();
@@ -138,13 +148,13 @@ function BrandingForm({ gym }: { gym: GymView }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <Card>
+      {!saveVia && <Card>
         <CardHeader title="Logo and app icon" description="Your members see only your gym’s name, logo and colour, never ours." />
         <CardBody className="grid gap-6 sm:grid-cols-2">
           <ImageSlot label="Logo" hint="Sidebar, sign-in page and receipts. PNG with a transparent background works best." url={gym.branding.logoUrl} {...image('logoUrl', 'gym_logo', 'Logo')} />
           <ImageSlot label="App icon" hint="Square, at least 512 × 512. Used when members add the app to their home screen." url={gym.branding.appIconUrl} square {...image('appIconUrl', 'gym_icon', 'App icon')} />
         </CardBody>
-      </Card>
+      </Card>}
 
       <Card>
         <CardHeader title="Colour and theme" description="We keep any colour readable in both themes (WCAG AA): too-light or too-dark colours are adjusted where needed." />

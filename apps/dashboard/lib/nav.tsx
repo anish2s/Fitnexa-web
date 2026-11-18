@@ -51,7 +51,7 @@ export const PLATFORM_ROUTES: RouteSection[] = [
     label: 'Platform',
     routes: [
       { href: '/', label: 'Gyms', icon: <Building2 /> },
-      { href: '/audit-log', label: 'Audit log', icon: <ScrollText />, comingIn: 'Milestone 5' },
+      { href: '/audit-log', label: 'Audit log', icon: <ScrollText /> },
     ],
   },
   { label: 'Account', routes: [{ href: '/settings', label: 'Settings', icon: <Settings /> }] },

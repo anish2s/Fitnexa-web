@@ -9,11 +9,11 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ApiError, createApiClient, type ApiClient, type Me } from '@fitnexa/api-client';
+import { ApiError, createApiClient, type ApiClient, type Me, type SessionUser } from '@fitnexa/api-client';
 
 type AuthState =
   | { status: 'loading' }
-  | { status: 'signedOut'; reason?: 'expired' }
+  | { status: 'signedOut'; reason?: 'expired' | 'support-ended' }
   | { status: 'signedIn'; me: Me }
   | { status: 'error'; error: ApiError };
 
@@ -22,6 +22,13 @@ interface AuthApi {
   api: ApiClient;
   signIn: (identifier: string, password: string) => Promise<Me>;
   signOut: () => Promise<void>;
+  /**
+   * "Log in as owner": use an owner token handed over by the platform console. In memory only, not
+   * refreshable, never shared with other tabs. Throws if the token isn't a support session for this gym.
+   */
+  adoptSupportSession: (token: string, user: SessionUser, expiresIn: number) => Promise<Me>;
+  /** Ends the support session on the server and in this tab only (other tabs and the owner's own sign-in are untouched). */
+  endSupportSession: () => Promise<void>;
   retry: () => void;
   can: (permission: string) => boolean;
 }
@@ -34,6 +41,8 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
   const [state, setState] = useState<AuthState>(hasSession ? { status: 'loading' } : { status: 'signedOut' });
   const stateRef = useRef(state);
   stateRef.current = state;
+  /** True while this tab runs a support session: cookie restores and other tabs must not replace it. */
+  const supportRef = useRef(false);
 
   const [api] = useState(() =>
     createApiClient({
@@ -41,7 +50,9 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
         // Session lost mid-use (refresh cookie expired, revoked, account disabled).
         if (!s && stateRef.current.status === 'signedIn') {
           queryClient.clear();
-          setState({ status: 'signedOut', reason: 'expired' });
+          const wasSupport = supportRef.current;
+          supportRef.current = false;
+          setState({ status: 'signedOut', reason: wasSupport ? 'support-ended' : 'expired' });
         }
       },
     }),
@@ -61,8 +72,11 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
     setState({ status: 'loading' });
     try {
       await api.refresh();
-      setState({ status: 'signedIn', me: await api.me() });
+      const me = await api.me();
+      if (supportRef.current) return; // a support session was adopted meanwhile; it wins
+      setState({ status: 'signedIn', me });
     } catch (err) {
+      if (supportRef.current) return;
       if (err instanceof ApiError && err.status !== 0 && err.status < 500) setState({ status: 'signedOut' });
       else setState({ status: 'error', error: err as ApiError });
     }
@@ -77,6 +91,7 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
     const channel = new BroadcastChannel(CHANNEL);
     channelRef.current = channel;
     channel.onmessage = (e: MessageEvent<string>) => {
+      if (supportRef.current) return; // a support tab follows only its own session
       if (e.data === 'signed-out') {
         api.clear();
         queryClient.clear();
@@ -108,6 +123,28 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
         queryClient.clear();
         setState({ status: 'signedOut' });
         broadcast('signed-out');
+      },
+      async adoptSupportSession(token, user, expiresIn) {
+        supportRef.current = true;
+        api.adoptImpersonation(token, user, expiresIn);
+        try {
+          const me = await api.me();
+          if (!me.impersonatedBy || me.scope !== 'tenant') throw new Error('not a support session');
+          queryClient.clear();
+          setState({ status: 'signedIn', me });
+          return me;
+        } catch (err) {
+          supportRef.current = false;
+          api.clear();
+          throw err;
+        }
+      },
+      async endSupportSession() {
+        await api.post('/api/v1/auth/impersonation/end').catch(() => undefined);
+        supportRef.current = false;
+        api.clear();
+        queryClient.clear();
+        setState({ status: 'signedOut', reason: 'support-ended' });
       },
       retry: () => void restore(),
       can: (p) => permissions.has(p),

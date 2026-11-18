@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Building2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { Badge, Button, Card, EmptyState, Input, Select, Skeleton, Table, TBody, TD, TH, THead, TR, type BadgeTone } from '@fitnexa/ui';
+import { AlertTriangle, Building2, ChevronLeft, ChevronRight, ChevronRight as Go, Plus, Search } from 'lucide-react';
+import { Badge, Button, buttonClasses, Card, EmptyState, Input, Select, Skeleton, Table, TBody, TD, TH, THead, TR, type BadgeTone } from '@fitnexa/ui';
 import { useAuth } from '@/lib/auth';
 import { useDebounced } from '@/lib/use-debounced';
 import { fullDate, num } from '@/lib/format';
@@ -24,7 +25,7 @@ const SUB: Record<string, { label: string; tone: BadgeTone }> = {
 const LIMIT = 20;
 
 
-/** Super admin: every gym on the platform (read-only in Milestone 1). */
+/** Super admin: every gym on the platform; open one to manage it. */
 export function PlatformGymList() {
   const { api } = useAuth();
   const [q, setQ] = useState('');
@@ -49,7 +50,11 @@ export function PlatformGymList() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-5">
-      <PageHeader title="Gyms" description="Every gym on Fitnexa. Each one runs on its own subdomain." />
+      <PageHeader
+        title="Gyms"
+        description="Every gym on Fitnexa. Each one runs on its own subdomain."
+        actions={<Link href="/gyms/new" className={buttonClasses({ className: 'max-sm:flex-1' })}><Plus className="size-4" /> New gym</Link>}
+      />
 
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-border p-4 md:flex-row md:items-center">
@@ -68,7 +73,7 @@ export function PlatformGymList() {
         ) : !gyms.data ? (
           <div className="flex flex-col gap-3 p-5">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-12" />)}</div>
         ) : rows.length === 0 ? (
-          <EmptyState icon={<Building2 />} title={query || status ? 'No gyms match' : 'No gyms yet'} description={query || status ? 'Try a different name, slug or status.' : 'Gyms you create appear here.'} />
+          <EmptyState icon={<Building2 />} title={query || status ? 'No gyms match' : 'No gyms yet'} description={query || status ? 'Try a different name, slug or status.' : 'Gyms you create appear here.'} action={!query && !status && <Link href="/gyms/new" className={buttonClasses()}><Plus className="size-4" /> New gym</Link>} />
         ) : (
           <Table>
             <THead>
@@ -78,18 +83,19 @@ export function PlatformGymList() {
                 <TH>Status</TH>
                 <TH className="hidden md:table-cell">Subscription</TH>
                 <TH className="hidden sm:table-cell">Created</TH>
+                <TH className="w-10"><span className="sr-only">Open</span></TH>
               </tr>
             </THead>
             <TBody>
               {rows.map((g) => (
-                <TR key={g.id}>
+                <TR key={g.id} className="relative cursor-pointer">
                   <TD>
                     <div className="flex items-center gap-3">
                       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2 text-xs font-semibold text-muted" aria-hidden>
                         {g.name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
                       </span>
                       <div className="min-w-0 leading-tight">
-                        <p className="font-medium sm:whitespace-nowrap">{g.name}</p>
+                        <Link href={`/gyms/${g.id}`} className="font-medium after:absolute after:inset-0 hover:underline sm:whitespace-nowrap">{g.name}</Link>
                         <p className="text-xs text-subtle">{g.slug}{g.city ? <span className="md:hidden"> · {g.city}</span> : null}</p>
                       </div>
                     </div>
@@ -100,6 +106,7 @@ export function PlatformGymList() {
                     {g.subscriptionStatus ? <Badge tone={SUB[g.subscriptionStatus]?.tone ?? 'neutral'}>{SUB[g.subscriptionStatus]?.label ?? g.subscriptionStatus}</Badge> : <span className="text-subtle">—</span>}
                   </TD>
                   <TD className="hidden whitespace-nowrap text-muted sm:table-cell">{fullDate(g.createdAt.slice(0, 10))}</TD>
+                  <TD className="text-subtle"><Go className="size-4" aria-hidden /></TD>
                 </TR>
               ))}
             </TBody>

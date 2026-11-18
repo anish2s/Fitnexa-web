@@ -11,15 +11,14 @@ import { errorMessage } from '@/lib/errors';
  * The API requires the dashboard to show it whenever /auth/me has impersonatedBy.
  */
 export function SupportSessionBanner({ adminName, gymName }: { adminName: string; gymName: string }) {
-  const { api, signOut } = useAuth();
+  const { endSupportSession } = useAuth();
   const toast = useToast();
   const [ending, setEnding] = useState(false);
 
   async function end() {
     setEnding(true);
     try {
-      await api.post('/api/v1/auth/impersonation/end');
-      await signOut();
+      await endSupportSession();
     } catch (err) {
       toast.show({ tone: 'error', title: 'Couldn’t end the session', description: errorMessage(err) });
       setEnding(false);

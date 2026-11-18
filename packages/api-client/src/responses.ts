@@ -544,6 +544,51 @@ export interface EraseResult {
   retained: string[];
 }
 
+// ---- Platform console (Milestone 5) ----
+
+/** GET /platform/tenants/:id */
+export interface PlatformTenantDetail {
+  tenant: GymView;
+  /** The gym's own address (from the backend's GYM_APP_URL_TEMPLATE). */
+  appUrl: string;
+  owners: { id: string; name: string; email: string | null; phone: string | null; status: 'invited' | 'active' | 'disabled'; lastLoginAt: string | null }[];
+  userCounts: { owner: number; staff: number; member: number };
+}
+
+/** GET /platform/tenants/slug-availability */
+export interface SlugAvailability {
+  slug: string;
+  available: boolean;
+  reason: null | 'invalid' | 'reserved' | 'taken';
+}
+
+/** POST /platform/tenants */
+export interface TenantCreated {
+  tenant: GymView;
+  appUrl: string;
+  owner: { id: string; status: 'invited' };
+  inviteSent: boolean;
+  inviteError: null | 'throttled' | 'send_failed';
+}
+
+/** POST /platform/tenants/:id/owner-invite */
+export interface OwnerInviteResult {
+  sent: boolean;
+  ownerId: string;
+  reason: null | 'throttled' | 'send_failed';
+}
+
+/** POST /platform/tenants/:id/impersonate: an owner token for the gym's host only, not refreshable. */
+export interface ImpersonationGrant {
+  accessToken: string;
+  tokenType: 'Bearer';
+  expiresIn: number;
+  expiresAt: string;
+  user: SessionUser;
+  gym: { id: string; slug: string; name: string };
+  appUrl?: string;
+}
+
 /**
  * `data` type per endpoint, keyed "<method> <path>" exactly as in the OpenAPI paths. Endpoints not
  * listed here return `unknown` until a screen needs them.
@@ -623,4 +668,15 @@ export interface ResponseMap {
   'get /api/v1/gym/payment-gateway/alerts': GatewayAlerts;
   'post /api/v1/gym/payment-gateway/alerts/{id}/resolve': GatewayAlerts['items'][number];
   'post /api/v1/members/{id}/erase': EraseResult;
+  'get /api/v1/platform/tenants/slug-availability': SlugAvailability;
+  'post /api/v1/platform/tenants': TenantCreated;
+  'get /api/v1/platform/tenants/{id}': PlatformTenantDetail;
+  'patch /api/v1/platform/tenants/{id}': GymView;
+  'patch /api/v1/platform/tenants/{id}/branding': GymView;
+  'post /api/v1/platform/tenants/{id}/suspend': GymView;
+  'post /api/v1/platform/tenants/{id}/activate': GymView;
+  'post /api/v1/platform/tenants/{id}/owner-invite': OwnerInviteResult;
+  'post /api/v1/platform/tenants/{id}/impersonate': ImpersonationGrant;
+  'get /api/v1/platform/tenants/{id}/audit-logs': AuditEntry[];
+  'get /api/v1/platform/audit-logs': AuditEntry[];
 }

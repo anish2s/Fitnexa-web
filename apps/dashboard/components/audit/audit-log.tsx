@@ -93,20 +93,23 @@ function Details({ e }: { e: AuditEntry }) {
   );
 }
 
-/** Owner-only: everything done in the gym, including by platform support. */
-export function AuditLog() {
-  const { api } = useAuth();
+type Filters = { action: string; actorId: string; from: string; to: string; page: number };
+
+/** Filters in the URL (full page), or in local state (embedded in another page with its own URL). */
+function useFilters(embedded: boolean): [Filters, (next: Partial<Filters>) => void] {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const state = {
+  const [local, setLocal] = useState<Filters>({ action: '', actorId: '', from: '', to: '', page: 1 });
+  if (embedded) return [local, (next) => setLocal((s) => ({ ...s, page: 1, ...next }))];
+  const state: Filters = {
     action: params.get('action') ?? '',
     actorId: params.get('actor') ?? '',
     from: params.get('from') ?? '',
     to: params.get('to') ?? '',
     page: Math.max(1, Number(params.get('page')) || 1),
   };
-  const update = (next: Partial<typeof state>) => {
+  const update = (next: Partial<Filters>) => {
     const m = { ...state, page: 1, ...next };
     const qs = new URLSearchParams();
     if (m.action) qs.set('action', m.action);
@@ -117,23 +120,41 @@ export function AuditLog() {
     const s = qs.toString();
     router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
   };
+  return [state, update];
+}
+
+export type AuditSource = { kind: 'gym' } | { kind: 'platform' } | { kind: 'tenant'; tenantId: string };
+
+/**
+ * The audit log. `gym`: the owner's own log (incl. platform support's actions). `platform`: the
+ * console's log (super admin sign-ins). `tenant`: one gym's log, seen from the console.
+ */
+export function AuditLog({ source = { kind: 'gym' }, embedded = false }: { source?: AuditSource; embedded?: boolean }) {
+  const { api } = useAuth();
+  const [state, update] = useFilters(embedded);
   const [open, setOpen] = useState<string | null>(null);
 
-  const people = useQuery({ queryKey: ['staff', 'all'], queryFn: () => api.get('/api/v1/staff', { query: { limit: 100 } }).then((r) => r.data) });
+  const people = useQuery({
+    queryKey: ['staff', 'all'],
+    queryFn: () => api.get('/api/v1/staff', { query: { limit: 100 } }).then((r) => r.data),
+    enabled: source.kind === 'gym',
+  });
   const log = useQuery({
-    queryKey: ['audit', state],
-    queryFn: () =>
-      api.get('/api/v1/audit-logs', {
-        query: {
-          action: state.action || undefined,
-          actorId: state.actorId || undefined,
-          // The API filters by timestamp: send the start and end of the chosen days (this device's time).
-          from: state.from ? new Date(`${state.from}T00:00:00`).toISOString() : undefined,
-          to: state.to ? new Date(`${state.to}T23:59:59.999`).toISOString() : undefined,
-          page: state.page,
-          limit: LIMIT,
-        } as never,
-      }),
+    queryKey: ['audit', source, state],
+    queryFn: () => {
+      const query = {
+        action: state.action || undefined,
+        actorId: state.actorId || undefined,
+        // The API filters by timestamp: send the start and end of the chosen days (this device's time).
+        from: state.from ? new Date(`${state.from}T00:00:00`).toISOString() : undefined,
+        to: state.to ? new Date(`${state.to}T23:59:59.999`).toISOString() : undefined,
+        page: state.page,
+        limit: LIMIT,
+      } as never;
+      if (source.kind === 'platform') return api.get('/api/v1/platform/audit-logs', { query });
+      if (source.kind === 'tenant') return api.get('/api/v1/platform/tenants/{id}/audit-logs', { params: { id: source.tenantId }, query });
+      return api.get('/api/v1/audit-logs', { query });
+    },
     placeholderData: keepPreviousData,
   });
   const rows = log.data?.data ?? [];
@@ -141,9 +162,14 @@ export function AuditLog() {
   const totalPages = meta?.totalPages ?? 1;
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-5">
-      <PageHeader title="Audit log" description="Every important action in your gym: who did it, when, and from where. Includes anything platform support did." />
-      <Card className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className={cn('flex flex-col gap-5', !embedded && 'mx-auto max-w-7xl')}>
+      {!embedded && (
+        <PageHeader
+          title="Audit log"
+          description={source.kind === 'platform' ? 'Sign-ins to the platform console. What support did inside a gym is in that gym’s own log.' : 'Every important action in your gym: who did it, when, and from where. Includes anything platform support did.'}
+        />
+      )}
+      <Card className={cn('grid gap-3 p-4 sm:grid-cols-2', source.kind === 'gym' ? 'lg:grid-cols-4' : 'lg:grid-cols-3')}>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="audit-action" className="text-sm font-medium">Action</label>
           <div className="relative">
@@ -156,7 +182,7 @@ export function AuditLog() {
           <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-subtle" aria-hidden />
           </div>
         </div>
-        <Select label="Person" value={state.actorId} onChange={(e) => update({ actorId: e.target.value })} options={[{ value: '', label: 'Everyone' }, ...(people.data ?? []).map((p) => ({ value: p.id, label: p.name }))]} />
+        {source.kind === 'gym' && <Select label="Person" value={state.actorId} onChange={(e) => update({ actorId: e.target.value })} options={[{ value: '', label: 'Everyone' }, ...(people.data ?? []).map((p) => ({ value: p.id, label: p.name }))]} />}
         <Input label="From" type="date" value={state.from} max={state.to || undefined} onChange={(e) => update({ from: e.target.value })} />
         <Input label="To" type="date" value={state.to} min={state.from || undefined} onChange={(e) => update({ to: e.target.value })} />
       </Card>
@@ -178,7 +204,7 @@ export function AuditLog() {
                     <button type="button" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : e.id)} className="grid w-full grid-cols-[1fr_auto] items-start gap-x-4 gap-y-1 px-5 py-3 text-left text-sm hover:bg-surface-2 sm:grid-cols-[170px_1fr_1fr_auto]">
                       <span className="text-muted tabular-nums max-sm:order-2 max-sm:col-span-2 max-sm:text-xs">{formatWhen(e.createdAt)}</span>
                       <span className="font-medium max-sm:order-1">{labelOf(e.action)}{e.changes.length > 0 && <span className="ml-1.5 text-xs font-normal text-subtle">{e.changes.length} {e.changes.length === 1 ? 'change' : 'changes'}</span>}</span>
-                      <span className="max-sm:order-3 max-sm:col-span-2"><Actor e={e} /> {e.target && <span className="ml-1"><Target e={e} /></span>}</span>
+                      <span className="max-sm:order-3 max-sm:col-span-2"><Actor e={e} /> {e.target && source.kind === 'gym' && <span className="ml-1"><Target e={e} /></span>}</span>
                       <ChevronDown className={cn('size-4 text-subtle transition-transform max-sm:order-1', expanded && 'rotate-180')} />
                     </button>
                   </li>

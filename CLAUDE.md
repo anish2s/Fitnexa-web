@@ -15,8 +15,9 @@ the dashboard must work without them and handle their "not configured" errors gr
 - Milestone 3 (front desk, check-in, sell/renew, payments, receipts, refunds, renewals, Razorpay) —
   **approved 2026-11-18**.
 - Milestone 4 (reports, staff, audit log, settings: gym/branding/online payments/account, member data export/erase) —
-  **approved 2026-11-18** (committed; pushed together with Milestone 5 at the owner's request).
-- Milestone 5 (platform console) — in progress. Plan and status per milestone: `docs/PROGRESS.md`.
+  **approved 2026-11-18**.
+- Milestone 5 (platform console: create/edit/suspend gyms, owner invites, log in as owner, platform audit log) —
+  **approved 2026-11-18**. Phase 2 (admin dashboard) milestones 0–5 complete. Plan and status per milestone: `docs/PROGRESS.md`.
 - Stop after each milestone with screenshots and wait for approval before starting the next.
 
 ## Rules
@@ -42,5 +43,7 @@ the dashboard must work without them and handle their "not configured" errors gr
 - `lib/auth.tsx` — session state; token only inside `@fitnexa/api-client`; restored on load via
   `/auth/refresh`; cross-tab sign-out via BroadcastChannel.
 - Navigation and permissions: `lib/nav.tsx`. Screens not built yet render "planned for Milestone N".
+- "Log in as owner": `lib/support-session.ts` (postMessage hand-off) + `app/(main)/support-session` +
+  `adoptSupportSession`/`endSupportSession` in `lib/auth.tsx`. The token never touches a URL or storage.
 - Response types: add to `packages/api-client/src/responses.ts` (`ResponseMap`) when a screen uses an
   endpoint; the OpenAPI spec only types requests.

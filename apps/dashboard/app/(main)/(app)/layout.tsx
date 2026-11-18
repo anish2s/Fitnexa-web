@@ -63,7 +63,7 @@ function SignedInShell({ children }: { children: ReactNode }) {
       mobileBrand={site.scope === 'gym' ? <GymBrand name={gymName} logoUrl={logoUrl} size={26} /> : <FitnexaBrand size={26} subtitle={null} />}
       nav={nav}
       isActive={(href) => (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`))}
-      user={{ name: me.user.name, role: ROLE_LABEL[me.user.role] ?? me.user.role }}
+      user={{ name: me.user.name, role: me.scope === 'platform' ? 'Super admin' : (ROLE_LABEL[me.user.role] ?? me.user.role) }}
       onSignOut={() => void signOut()}
       themeControl={<ThemeToggle />}
       banner={me.impersonatedBy ? <SupportSessionBanner adminName={me.impersonatedBy.name} gymName={gymName} /> : undefined}
@@ -80,6 +80,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    if (state.status === 'signedOut' && state.reason === 'support-ended') {
+      router.replace('/support-session?ended=1');
+      return;
+    }
     if (state.status === 'signedOut') {
       const next = pathname && pathname !== '/' ? `?next=${encodeURIComponent(pathname)}` : '';
       router.replace(`/login${next}`);
