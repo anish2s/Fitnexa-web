@@ -7,9 +7,8 @@ import { Avatar, Button, Spinner, useToast } from '@fitnexa/ui';
 import type { MemberDetail } from '@fitnexa/api-client';
 import { useAuth } from '@/lib/auth';
 import { actionMessage } from '@/lib/errors';
+import { IMAGE_TYPES, imageProblem, uploadImage, UploadFailed } from '@/lib/upload';
 
-const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_BYTES = 5 * 1024 * 1024;
 
 /**
  * Member photo with change/remove. Upload goes browser → Cloudinary directly with a signature from
@@ -28,21 +27,16 @@ export function MemberPhoto({ member, editable }: { member: MemberDetail; editab
   };
 
   async function upload(file: File) {
-    if (!TYPES.includes(file.type)) return toast.show({ tone: 'error', title: 'Use a JPG, PNG or WebP image' });
-    if (file.size > MAX_BYTES) return toast.show({ tone: 'error', title: 'That photo is too large', description: 'Choose one under 5 MB.' });
+    const problem = imageProblem(file);
+    if (problem) return toast.show({ tone: 'error', title: problem });
     setBusy(true);
     try {
-      const { data: sig } = await api.post('/api/v1/uploads/signature', { body: { purpose: 'member_photo', memberId: member.id } });
-      const form = new FormData();
-      for (const [k, v] of Object.entries(sig.fields)) form.append(k, v);
-      form.append('file', file);
-      const res = await fetch(sig.uploadUrl, { method: 'POST', body: form });
-      if (!res.ok) throw new Error('upload failed');
-      const { data } = await api.put('/api/v1/members/{id}/photo', { params: { id: member.id }, body: { publicId: sig.publicId } });
+      const { publicId } = await uploadImage(api, { purpose: 'member_photo', memberId: member.id }, file);
+      const { data } = await api.put('/api/v1/members/{id}/photo', { params: { id: member.id }, body: { publicId } });
       saved(data);
       toast.show({ tone: 'success', title: 'Photo updated' });
     } catch (err) {
-      toast.show({ tone: 'error', title: 'Couldn’t update the photo', description: err instanceof Error && err.message === 'upload failed' ? 'The upload didn’t go through. Please try again.' : actionMessage(err) });
+      toast.show({ tone: 'error', title: 'Couldn’t update the photo', description: err instanceof UploadFailed ? err.message : actionMessage(err) });
     } finally {
       setBusy(false);
       if (input.current) input.current.value = '';
@@ -88,7 +82,7 @@ export function MemberPhoto({ member, editable }: { member: MemberDetail; editab
           Remove
         </Button>
       )}
-      <input ref={input} type="file" accept={TYPES.join(',')} className="hidden" onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
+      <input ref={input} type="file" accept={IMAGE_TYPES.join(',')} className="hidden" onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
     </div>
   );
 }

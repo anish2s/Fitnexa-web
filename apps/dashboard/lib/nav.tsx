@@ -33,15 +33,15 @@ export const GYM_ROUTES: RouteSection[] = [
     routes: [
       { href: '/payments', label: 'Payments', icon: <CreditCard />, permission: 'payments:read' },
       { href: '/plans', label: 'Plans', icon: <Tag />, permission: 'plans:read' },
-      { href: '/reports', label: 'Reports', icon: <BarChart3 />, permission: 'reports:read', comingIn: 'Milestone 4' },
+      { href: '/reports', label: 'Reports', icon: <BarChart3 />, permission: 'reports:read' },
     ],
   },
   {
     label: 'Account',
     routes: [
-      { href: '/staff', label: 'Staff', icon: <UserCog />, permission: 'staff:read', comingIn: 'Milestone 4' },
-      { href: '/audit-log', label: 'Audit log', icon: <ScrollText />, permission: 'audit:read', comingIn: 'Milestone 4' },
-      { href: '/settings', label: 'Settings', icon: <Settings />, comingIn: 'Milestone 4' },
+      { href: '/staff', label: 'Staff', icon: <UserCog />, permission: 'staff:read' },
+      { href: '/audit-log', label: 'Audit log', icon: <ScrollText />, permission: 'audit:read' },
+      { href: '/settings', label: 'Settings', icon: <Settings /> },
     ],
   },
 ];
@@ -54,7 +54,7 @@ export const PLATFORM_ROUTES: RouteSection[] = [
       { href: '/audit-log', label: 'Audit log', icon: <ScrollText />, comingIn: 'Milestone 5' },
     ],
   },
-  { label: 'Account', routes: [{ href: '/settings', label: 'Settings', icon: <Settings />, comingIn: 'Milestone 5' }] },
+  { label: 'Account', routes: [{ href: '/settings', label: 'Settings', icon: <Settings /> }] },
 ];
 
 export function findRoute(sections: RouteSection[], href: string): Route | undefined {

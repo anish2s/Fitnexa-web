@@ -90,11 +90,27 @@ interface ReportBase<Row> {
 export interface RevenueReport
   extends ReportBase<{ period: string; receivedPaise: number; refundedPaise: number; netPaise: number; payments: number; refunds: number }> {
   totals: { receivedPaise: number; refundedPaise: number; netPaise: number; payments: number; refunds: number };
+  byMethod?: Partial<Record<PaymentMethod, { receivedPaise: number; payments: number }>>;
 }
 
 /** GET /reports/attendance */
 export interface AttendanceReport extends ReportBase<{ period: string; checkIns: number }> {
   totals: { checkIns: number; uniqueMembers: number; averagePerDay: number };
+  byHour?: { hour: number; checkIns: number }[];
+  byWeekday?: { weekday: string; checkIns: number }[];
+}
+
+/** GET /reports/memberships */
+export interface MembershipsReport
+  extends ReportBase<{ period: string; sold: number; new: number; renewals: number; valuePaise: number; discountPaise: number; cancelled: number }> {
+  totals: { sold: number; new: number; renewals: number; valuePaise: number; discountPaise: number; cancelled: number };
+  byPlan: { plan: string; sold: number; valuePaise: number }[];
+}
+
+/** GET /reports/renewals (renewalRate null when nothing was decided in the period) */
+export interface RenewalsReport
+  extends ReportBase<{ period: string; ending: number; renewedOnTime: number; renewedLate: number; notRenewed: number; pending: number; renewalRate: number | null }> {
+  totals: { ending: number; renewedOnTime: number; renewedLate: number; notRenewed: number; pending: number; renewalRate: number | null };
 }
 
 /** GET /reports/growth */
@@ -315,13 +331,43 @@ export interface Plan {
   updatedAt: string | null;
 }
 
-/** GET /gym (the fields the dashboard reads so far) */
+export interface GymAddress {
+  line1: string | null;
+  line2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string;
+}
+
+export interface GymSettings {
+  timezone: string;
+  currency: string;
+  locale: string;
+  gstin: string | null;
+  receiptPrefix: string;
+  renewalReminderDays: number;
+  renewalRemindersEnabled: boolean;
+}
+
+/** GET /gym, PATCH /gym, PATCH /gym/branding */
 export interface GymView {
   id: string;
   name: string;
   slug: string;
-  settings: { timezone?: string; gstin?: string | null; [k: string]: unknown };
-  [k: string]: unknown;
+  status: 'active' | 'suspended';
+  email: string | null;
+  phone: string | null;
+  customDomain: string | null;
+  customDomainVerified: boolean;
+  address: GymAddress;
+  settings: GymSettings;
+  branding: Branding;
+  subscription: { status: string; planCode: string; priceMonthlyPaise: number; currentPeriodEnd: string | null };
+  suspendedAt: string | null;
+  suspendedReason: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ---- Front desk & money (Milestone 3) ----
@@ -412,6 +458,92 @@ export interface RazorpayCheckout {
   prefill: { name?: string; email?: string; contact?: string };
 }
 
+// ---- Owner tools (Milestone 4) ----
+
+/** GET /staff item, GET/PATCH /staff/:id */
+export interface StaffView {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: 'owner' | 'staff';
+  status: 'invited' | 'active' | 'disabled';
+  /** The owner's extra grants (grantable permissions only). */
+  grants: string[];
+  /** The full effective permission set. */
+  permissions: string[];
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+/** POST /staff */
+export interface StaffCreated {
+  staff: StaffView;
+  inviteSent: boolean;
+  inviteError: string | null;
+}
+
+/** POST /staff/:id/invite */
+export interface InviteResult {
+  sent: boolean;
+  reason: string | null;
+}
+
+/** GET /audit-logs item */
+export interface AuditEntry {
+  id: string;
+  action: string;
+  actor: { type: 'user' | 'platform_admin' | 'system'; id: string | null; name: string | null; role: string | null };
+  impersonator: { id: string; name: string } | null;
+  target: { type: string; id: string } | null;
+  changes: { field: string; from: unknown; to: unknown }[];
+  metadata: Record<string, unknown> | null;
+  ip: string | null;
+  userAgent: string | null;
+  requestId: string | null;
+  createdAt: string;
+}
+
+/** GET /auth/sessions item */
+export interface SessionInfo {
+  id: string;
+  current: boolean;
+  impersonated: boolean;
+  createdAt: string;
+  lastUsedAt: string | null;
+  userAgent: string | null;
+  ip: string | null;
+}
+
+/** GET /gym/payment-gateway/alerts */
+export interface GatewayAlerts {
+  openCount: number;
+  items: {
+    id: string;
+    kind: 'duplicate_payment';
+    status: 'duplicate_refund_due' | 'resolved';
+    amountPaise: number;
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    appliedRazorpayPaymentId: string | null;
+    membershipId: string;
+    memberId: string;
+    memberName: string;
+    source: 'checkout' | 'webhook';
+    createdAt: string;
+    resolvedAt: string | null;
+    resolutionNote: string | null;
+  }[];
+}
+
+/** POST /members/:id/erase */
+export interface EraseResult {
+  memberCode: string;
+  erasedAt: string;
+  removed: string[];
+  retained: string[];
+}
+
 /**
  * `data` type per endpoint, keyed "<method> <path>" exactly as in the OpenAPI paths. Endpoints not
  * listed here return `unknown` until a screen needs them.
@@ -470,4 +602,25 @@ export interface ResponseMap {
   'get /api/v1/gym/payment-gateway': GatewayStatus;
   'post /api/v1/memberships/{id}/razorpay-order': RazorpayCheckout;
   'post /api/v1/payments/razorpay/verify': PaymentView;
+  'patch /api/v1/gym': GymView;
+  'patch /api/v1/gym/branding': GymView;
+  'get /api/v1/reports/memberships': MembershipsReport;
+  'get /api/v1/reports/renewals': RenewalsReport;
+  'get /api/v1/staff': StaffView[];
+  'post /api/v1/staff': StaffCreated;
+  'get /api/v1/staff/{id}': StaffView;
+  'patch /api/v1/staff/{id}': StaffView;
+  'post /api/v1/staff/{id}/deactivate': StaffView;
+  'post /api/v1/staff/{id}/activate': StaffView;
+  'post /api/v1/staff/{id}/invite': InviteResult;
+  'get /api/v1/audit-logs': AuditEntry[];
+  'get /api/v1/auth/sessions': SessionInfo[];
+  'delete /api/v1/auth/sessions/{id}': undefined;
+  'post /api/v1/auth/logout-all': undefined;
+  'post /api/v1/auth/password/change': undefined;
+  'put /api/v1/gym/payment-gateway/razorpay': GatewayStatus;
+  'delete /api/v1/gym/payment-gateway/razorpay': GatewayStatus;
+  'get /api/v1/gym/payment-gateway/alerts': GatewayAlerts;
+  'post /api/v1/gym/payment-gateway/alerts/{id}/resolve': GatewayAlerts['items'][number];
+  'post /api/v1/members/{id}/erase': EraseResult;
 }

@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useState, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Archive, ArchiveRestore, ArrowLeft, ArrowUpRight, Ban, CalendarClock, IndianRupee, LogIn, Mail, Pencil, Phone, QrCode, RefreshCw, ShieldCheck, ShoppingBag, Smartphone, UserX } from 'lucide-react';
-import { Badge, Button, buttonClasses, Card, CardBody, CardHeader, EmptyState, Skeleton, Table, TBody, TD, TH, THead, TR, Textarea, useToast, type BadgeTone } from '@fitnexa/ui';
+import { AlertTriangle, Archive, Download, Eraser, ArchiveRestore, ArrowLeft, ArrowUpRight, Ban, CalendarClock, IndianRupee, LogIn, Mail, Pencil, Phone, QrCode, RefreshCw, ShieldCheck, ShoppingBag, Smartphone, UserX } from 'lucide-react';
+import { Badge, Button, buttonClasses, Card, CardBody, CardHeader, EmptyState, Input, Skeleton, Table, TBody, TD, TH, THead, TR, Textarea, useToast, type BadgeTone } from '@fitnexa/ui';
 import { ApiError, type MemberDetail, type MembershipView } from '@fitnexa/api-client';
 import { useAuth } from '@/lib/auth';
 import { useDashboard, useMember } from '@/lib/queries';
@@ -270,6 +270,79 @@ function CancelMembershipDialog({ membership, onClose }: { membership: Membershi
   );
 }
 
+/** DPDP tools for the owner: download everything held about the member, or erase their personal data. */
+function MemberPrivacy({ member }: { member: MemberDetail }) {
+  const { api, state } = useAuth();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [erasing, setErasing] = useState(false);
+  const [code, setCode] = useState('');
+  const [reason, setReason] = useState('');
+  const [errors, setErrors] = useState<{ code?: string; reason?: string }>({});
+  const [exporting, setExporting] = useState(false);
+  const impersonated = state.status === 'signedIn' && Boolean(state.me.impersonatedBy);
+  const erased = member.name.startsWith('Erased member');
+
+  async function exportData() {
+    setExporting(true);
+    try {
+      const blob = await api.download('/api/v1/members/{id}/export', { params: { id: member.id } });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `member-${member.memberCode}-data.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.show({ tone: 'success', title: 'Data downloaded', description: 'Share it only with the member. The download is recorded in the audit log.' });
+    } catch (err) {
+      toast.show({ tone: 'error', title: 'Couldn’t export the data', description: actionMessage(err) });
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader title="Member data" description="The member’s rights under India’s data protection law (DPDP)." />
+      <CardBody className="flex flex-col gap-2">
+        <Button variant="secondary" leftIcon={<Download className="size-4" />} loading={exporting} onClick={exportData}>Download their data</Button>
+        {!erased && (
+          <Button variant="ghost" className="text-danger-text" leftIcon={<Eraser className="size-4" />} disabled={impersonated} title={impersonated ? 'Not available in a support session' : undefined} onClick={() => setErasing(true)}>
+            Erase personal data
+          </Button>
+        )}
+      </CardBody>
+      <ConfirmDialog
+        open={erasing}
+        onClose={() => { setErasing(false); setCode(''); setReason(''); setErrors({}); }}
+        title={`Erase ${member.name}’s personal data?`}
+        confirmLabel="Erase permanently"
+        tone="danger"
+        onConfirm={async () => {
+          const next: typeof errors = {};
+          if (code.trim().toUpperCase() !== member.memberCode) next.code = `Type ${member.memberCode} to confirm`;
+          if (reason.trim().length < 5) next.reason = 'Say why (at least 5 characters)';
+          setErrors(next);
+          if (next.code || next.reason) return false;
+          await api.post('/api/v1/members/{id}/erase', { params: { id: member.id }, body: { confirmMemberCode: code.trim().toUpperCase(), reason: reason.trim() } });
+          await queryClient.invalidateQueries({ queryKey: ['member', member.id] });
+          void queryClient.invalidateQueries({ queryKey: ['members'] });
+          toast.show({ tone: 'success', title: 'Personal data erased', description: `${member.memberCode} is kept, anonymised, for tax records.` });
+        }}
+      >
+        <p className="font-medium text-danger-text">This can’t be undone.</p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>Removed: name, phone, email, date of birth, gender, emergency contact, notes, photo, app sign-in and reminders.</li>
+          <li>Kept, anonymised: member code, memberships, payments and receipts (tax records), visit dates, consent record.</li>
+          <li>The member is archived for good. Their phone and email can be used by a new registration.</li>
+        </ul>
+        <Input label={`Type ${member.memberCode} to confirm`} value={code} onChange={(e) => { setCode(e.target.value); setErrors((x) => ({ ...x, code: undefined })); }} autoComplete="off" className="font-mono uppercase" error={errors.code} />
+        <Textarea label="Reason" rows={2} maxLength={500} value={reason} onChange={(e) => { setReason(e.target.value); setErrors((x) => ({ ...x, reason: undefined })); }} placeholder="e.g. Member asked by email on 18 Nov to delete their data" error={errors.reason} />
+      </ConfirmDialog>
+    </Card>
+  );
+}
+
 export function MemberProfile({ id }: { id: string }) {
   const { api, can } = useAuth();
   const toast = useToast();
@@ -386,7 +459,7 @@ export function MemberProfile({ id }: { id: string }) {
                 <Pencil className="size-4" /> Edit
               </Link>
             )}
-            {can('members:archive') &&
+            {can('members:archive') && !m.name.startsWith('Erased member') &&
               (archived ? (
                 <Button variant="secondary" leftIcon={<ArchiveRestore className="size-4" />} onClick={() => setConfirm('restore')}>Restore</Button>
               ) : (
@@ -458,6 +531,7 @@ export function MemberProfile({ id }: { id: string }) {
               </p>
             </CardBody>
           </Card>
+          {can('privacy:manage') && <MemberPrivacy member={m} />}
         </div>
       </div>
 

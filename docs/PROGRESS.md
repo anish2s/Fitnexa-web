@@ -8,10 +8,56 @@ Each milestone ends with screenshots and stops for the owner's approval.
 | 1 | Foundation: API client, sign-in, sessions, gym branding, app shell, Overview, platform gym list | ✅ Approved 2026-11-18 |
 | 2 | Members & plans: list/search, register (with consent), profile, edit/archive, CSV import, plans | ✅ Approved 2026-11-18 |
 | 3 | Front desk & money: check-in (QR + manual), sell/renew memberships, payments, receipts, refunds, renewals | ✅ Approved 2026-11-18 |
-| 4 | Owner tools: reports, staff & permissions, gym settings & branding, audit log, account & sessions | 🔨 In progress |
-| 5 | Platform console: create/suspend gyms, owner invites, "log in as owner", platform audit log | Planned |
+| 4 | Owner tools: reports, staff & permissions, gym settings & branding, audit log, account & sessions | ✅ Approved 2026-11-18 |
+| 5 | Platform console: create/suspend gyms, owner invites, "log in as owner", platform audit log | 🔨 In progress |
 
 Milestones 2–5 are a proposal; scope is confirmed at the start of each.
+
+## Milestone 4 — Owner tools (2026-11-18)
+
+**Built**
+- **Reports** (`/reports`, `reports:read`): Revenue (received / refunded / net, by payment method),
+  Memberships sold (new vs renewals, value, discounts, cancellations, by plan), Renewals (rate, on time /
+  late / not renewed / pending), Attendance (unique members, average per day, busiest hour, by hour and
+  weekday), Growth (joined, archived, net change, active members). Ranges: 30 days / 3 months /
+  12 months / custom (≤ 366 days, explained if longer); group by auto / day / week / month (the API
+  fills empty periods). Charts, totals, period table and **CSV download** of what's on screen.
+  On phones, long charts scroll inside their card.
+- **Staff** (`/staff`, owner): invite by email (with optional phone) and extra permissions
+  (refunds, reports, archive, import, plans, reminder emails), edit, resend invite, deactivate
+  (signs them out everywhere) / reactivate. Owners are shown but only changeable by platform support.
+  Stacked rows on phones.
+- **Audit log** (`/audit-log`, owner): plain-language actions, filter by action (grouped), person and
+  dates; each entry expands to field changes (personal values hidden by the API), details, device, IP
+  and request id; actions by platform support are flagged.
+- **Settings** (`/settings`, tabs by permission):
+  - *Gym*: name, email, phone, address, GSTIN, receipt prefix, time zone, renewal reminders (on/off,
+    days). Sends only changes; field errors from the API land on the field.
+  - *Branding*: logo and app icon upload (browser → Cloudinary, signed by the API), brand colour
+    (swatches, picker, hex) with a live dark + light preview using the same contrast rules as the app
+    (shows when a colour is adjusted for readability), default theme. Saving re-themes the whole app.
+  - *Online payments*: connect Razorpay (step-by-step, webhook URL to copy, events list), status and
+    disconnect; duplicate-payment alerts to mark as refunded (`payments:refund`). Blocked while signed in
+    as support.
+  - *My account* (everyone, incl. staff and super admin): details, change password (wrong current
+    password shown on the field), signed-in devices with sign-out per device and "sign out everywhere".
+- **Member data (DPDP)** on the member profile (owner, `privacy:manage`): download everything held as
+  JSON; erase personal data after typing the member code and a reason (irreversible; financial records
+  kept anonymised). Erased members can't be restored.
+- Shared image upload helper (member photo + gym logo/icon).
+
+**Verified**
+- End-to-end: 24 tests passing (+7): gym settings validation/save/restore; branding colour re-themes
+  the app and is restored; staff invite with a grant → edit → deactivate, recorded in the audit log;
+  wrong current password; every report loads, CSV downloads, too-long range explained; member export
+  and erase with code confirmation; front-desk staff see only "My account" and can't reach owner tools.
+- Unit 15 (api-client 10, ui 5); typecheck and production build clean; no horizontal scroll at 390 px.
+
+**Notes for the backend**
+- The Razorpay webhook URL in `GET /gym/payment-gateway` uses the backend's configured app URL
+  (`http://<gym>.localhost:3000` locally); check it points at the real public host in production.
+- Staff can't be deleted, only deactivated (by design); test staff created by e2e runs stay listed as
+  deactivated in the FitZone demo gym.
 
 ## Milestone 3 — Front desk & money (2026-11-18)
 

@@ -14,7 +14,9 @@ the dashboard must work without them and handle their "not configured" errors gr
   **approved 2026-11-18**. Consent wording is a draft; the owner will supply the final text later.
 - Milestone 3 (front desk, check-in, sell/renew, payments, receipts, refunds, renewals, Razorpay) —
   **approved 2026-11-18**.
-- Milestone 4 (owner tools) — in progress. Plan and status per milestone: `docs/PROGRESS.md`.
+- Milestone 4 (reports, staff, audit log, settings: gym/branding/online payments/account, member data export/erase) —
+  **approved 2026-11-18** (committed; pushed together with Milestone 5 at the owner's request).
+- Milestone 5 (platform console) — in progress. Plan and status per milestone: `docs/PROGRESS.md`.
 - Stop after each milestone with screenshots and wait for approval before starting the next.
 
 ## Rules
