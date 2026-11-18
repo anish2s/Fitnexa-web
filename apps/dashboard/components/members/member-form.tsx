@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Mail, Phone, ShieldCheck, Smartphone } from 'lucide-react';
@@ -129,12 +129,12 @@ export function MemberForm({
   const editing = Boolean(member);
   const [before] = useState(() => initialValues(member));
   const [failure, setFailure] = useState<{ message: string; ref?: string } | null>(null);
-  const { register, handleSubmit, setError, watch, formState } = useForm<MemberFormValues>({
+  const { register, handleSubmit, setError, control, formState } = useForm<MemberFormValues>({
     resolver: zodResolver(schema),
     defaultValues: before,
   });
   const errors = formState.errors;
-  const email = watch('email');
+  const email = useWatch({ control, name: 'email' });
 
   const submit = handleSubmit(async (values) => {
     setFailure(null);

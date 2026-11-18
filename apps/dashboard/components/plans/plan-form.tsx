@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { IndianRupee } from 'lucide-react';
@@ -65,9 +65,9 @@ export function PlanForm({
 }) {
   const [failure, setFailure] = useState<{ message: string; ref?: string } | null>(null);
   // Mounted fresh for each opening (see PlanList), so the defaults are in place from the first frame.
-  const { register, handleSubmit, setError, watch, formState } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: initial(plan, hasGstin) });
+  const { register, handleSubmit, setError, control, formState } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: initial(plan, hasGstin) });
   const errors = formState.errors;
-  const taxMode = watch('taxMode');
+  const taxMode = useWatch({ control, name: 'taxMode' });
 
   const submit = handleSubmit(async (v) => {
     setFailure(null);

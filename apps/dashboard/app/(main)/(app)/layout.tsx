@@ -8,7 +8,7 @@ import { Badge, Button, EmptyState, Skeleton } from '@fitnexa/ui';
 import { useAuth } from '@/lib/auth';
 import { useSite } from '@/lib/site';
 import { useDashboard } from '@/lib/queries';
-import { GYM_ROUTES, PLATFORM_ROUTES, ROLE_LABEL } from '@/lib/nav';
+import { GYM_ROUTES, PLATFORM_ROUTES, ROLE_LABEL, visibleNav } from '@/lib/nav';
 import { errorMessage } from '@/lib/errors';
 import { AppShell, type NavSection } from '@/components/shell/app-shell';
 import { FitnexaBrand, GymBrand } from '@/components/shell/brand';
@@ -40,19 +40,15 @@ function SignedInShell({ children }: { children: ReactNode }) {
 
   const expiring = dashboard.data?.pendingRenewals.expiringSoon ?? 0;
   const sections = site.scope === 'gym' ? GYM_ROUTES : PLATFORM_ROUTES;
-  const nav: NavSection[] = sections
-    .map((s) => ({
-      label: s.label,
-      items: s.routes
-        .filter((r) => !r.permission || can(r.permission))
-        .map((r) => ({
-          href: r.href,
-          label: r.label,
-          icon: r.icon,
-          badge: r.href === '/renewals' && expiring > 0 ? <Badge tone="warning">{expiring}</Badge> : undefined,
-        })),
-    }))
-    .filter((s) => s.items.length > 0);
+  const nav: NavSection[] = visibleNav(sections, can).map((s) => ({
+    label: s.label,
+    items: s.routes.map((r) => ({
+      href: r.href,
+      label: r.label,
+      icon: r.icon,
+      badge: r.href === '/renewals' && expiring > 0 ? <Badge tone="warning">{expiring}</Badge> : undefined,
+    })),
+  }));
 
   const gymName = site.scope === 'gym' ? site.tenant.name : '';
   const logoUrl = site.scope === 'gym' ? site.tenant.branding.logoUrl : null;
@@ -88,7 +84,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       const next = pathname && pathname !== '/' ? `?next=${encodeURIComponent(pathname)}` : '';
       router.replace(`/login${next}`);
     }
-  }, [state.status, router, pathname]);
+  }, [state, router, pathname]);
 
   if (state.status === 'error') {
     return (

@@ -298,7 +298,10 @@ export function Reports() {
 
   const set = (next: Record<string, string | undefined>) => {
     const qs = new URLSearchParams(params.toString());
-    for (const [k, v] of Object.entries(next)) (v ? qs.set(k, v) : qs.delete(k));
+    for (const [k, v] of Object.entries(next)) {
+      if (v) qs.set(k, v);
+      else qs.delete(k);
+    }
     if (qs.get('report') === 'revenue') qs.delete('report');
     if (qs.get('range') === '30d') qs.delete('range');
     const s = qs.toString();

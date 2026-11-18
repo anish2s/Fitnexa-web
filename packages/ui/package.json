@@ -11,7 +11,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/brand.test.ts"
+    "test": "tsx --test src/brand.test.ts",
+    "lint": "eslint ."
   },
   "peerDependencies": {
     "react": "^19",

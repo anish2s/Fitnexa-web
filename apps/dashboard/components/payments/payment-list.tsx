@@ -106,7 +106,8 @@ export function PaymentList() {
           <span className="text-sm font-medium">Period</span>
           <div className="inline-flex rounded-lg border border-border bg-surface-2 p-0.5" role="radiogroup" aria-label="Period">
             {([['today', 'Today'], ['month', 'This month'], ['last-month', 'Last month']] as const).map(([v, l]) => (
-              <button key={v} type="button" role="radio" aria-checked={preset === v} onClick={() => setPreset(v)} className={cn('h-8 flex-1 rounded-md px-3 text-sm font-medium whitespace-nowrap', preset === v ? 'bg-surface text-fg shadow-1' : 'text-subtle hover:text-fg')}>{l}</button>
+              // Presets need the gym's "today" (from the API); until then a click would do nothing.
+              <button key={v} type="button" role="radio" aria-checked={preset === v} disabled={!today} onClick={() => setPreset(v)} className={cn('h-8 flex-1 rounded-md px-3 text-sm font-medium whitespace-nowrap disabled:opacity-60', preset === v ? 'bg-surface text-fg shadow-1' : 'text-subtle hover:text-fg')}>{l}</button>
             ))}
           </div>
         </div>

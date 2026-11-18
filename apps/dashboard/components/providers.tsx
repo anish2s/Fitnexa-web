@@ -2,10 +2,10 @@
 
 import { useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ApiError } from '@fitnexa/api-client';
 import { ToastProvider } from '@fitnexa/ui';
 import { AuthProvider } from '@/lib/auth';
 import { SiteProvider, type Site } from '@/lib/site';
+import { retryDelay, shouldRetry } from '@/lib/retry';
 
 export function Providers({ site, hasSession, children }: { site: Site; hasSession: boolean; children: ReactNode }) {
   const [queryClient] = useState(
@@ -15,8 +15,9 @@ export function Providers({ site, hasSession, children }: { site: Site; hasSessi
           queries: {
             staleTime: 30_000,
             refetchOnWindowFocus: true,
-            // Retry only transient failures; a 4xx won't change by asking again.
-            retry: (count, err) => count < 2 && (!(err instanceof ApiError) || err.status === 0 || err.status >= 500),
+            // Only 5xx/network failures, briefly: see lib/retry.ts.
+            retry: shouldRetry,
+            retryDelay,
           },
           mutations: { retry: false },
         },

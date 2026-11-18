@@ -39,6 +39,18 @@ test('login stores the token in memory and sends it as a bearer token', async ()
   assert.deepEqual(seen, ['A']);
 });
 
+test('subscribe(): listeners hear sign-in and sign-out until they unsubscribe', async () => {
+  const { fetch } = fakeFetch({ '/api/v1/auth/login': [{ status: 200, body: session('A') }, { status: 200, body: session('B') }] });
+  const api = createApiClient({ fetch });
+  const seen: (string | null)[] = [];
+  const off = api.subscribe((s) => seen.push(s?.accessToken ?? null));
+  await api.login('owner@x', 'pw');
+  api.clear();
+  off();
+  await api.login('owner@x', 'pw');
+  assert.deepEqual(seen, ['A', null]);
+});
+
 test('TOKEN_EXPIRED refreshes once and retries with the same idempotency key', async () => {
   let n = 0;
   const { calls, fetch } = fakeFetch({

@@ -105,10 +105,13 @@ export function createApiClient(opts: ApiClientOptions = {}) {
   let refreshable = true;
   let refreshing: Promise<Session> | null = null;
 
+  const listeners = new Set<(session: Session | null) => void>();
+
   function setSession(next: Session | null, canRefresh = true) {
     session = next;
     refreshable = canRefresh;
     opts.onSessionChange?.(next);
+    for (const l of listeners) l(next);
   }
 
   async function send(req: InternalRequest): Promise<Response> {
@@ -284,6 +287,12 @@ export function createApiClient(opts: ApiClientOptions = {}) {
     /** Forget the session locally (e.g. another tab signed out). */
     clear() {
       setSession(null);
+    },
+
+    /** Like the `onSessionChange` option, attachable later (e.g. from a React effect). Returns an unsubscribe. */
+    subscribe(listener: (session: Session | null) => void): () => void {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
     },
   };
   return api;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { notFound, useRouter, useSearchParams } from 'next/navigation';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
 import { Button, Card, Spinner } from '@fitnexa/ui';
@@ -10,6 +10,10 @@ import { useSite } from '@/lib/site';
 import { errorMessage } from '@/lib/errors';
 import { SUPPORT_READY, SUPPORT_TOKEN } from '@/lib/support-session';
 
+
+const noSubscribe = () => () => {};
+/** Whether a window (the platform console) opened this tab. Assumed yes while rendering on the server. */
+const useHasOpener = () => useSyncExternalStore(noSubscribe, () => window.opener !== null, () => true);
 
 type TokenMessage = { type: typeof SUPPORT_TOKEN; accessToken: string; user: SessionUser; expiresIn: number };
 
@@ -39,15 +43,12 @@ function SupportSession() {
   const [error, setError] = useState('');
   const handled = useRef(false);
   const ended = params.get('ended') === '1';
+  const hasOpener = useHasOpener();
 
   useEffect(() => {
     if (ended || site.scope !== 'gym') return;
     const opener = window.opener as Window | null;
-    if (!opener) {
-      setError('Open this from the platform console with “Log in as owner”.');
-      setStatus('failed');
-      return;
-    }
+    if (!opener) return; // explained below
     const onMessage = async (e: MessageEvent<TokenMessage>) => {
       if (e.source !== opener || e.data?.type !== SUPPORT_TOKEN || handled.current) return;
       handled.current = true;
@@ -83,10 +84,10 @@ function SupportSession() {
       </Frame>
     );
   }
-  if (status === 'failed') {
+  if (!hasOpener || status === 'failed') {
     return (
       <Frame icon={<ShieldAlert className="size-8 text-danger-text" />} title="Couldn’t start the support session">
-        <p className="text-sm text-muted">{error}</p>
+        <p className="text-sm text-muted">{hasOpener ? error : 'Open this from the platform console with “Log in as owner”.'}</p>
       </Frame>
     );
   }

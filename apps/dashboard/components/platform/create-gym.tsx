@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -103,13 +103,14 @@ export function CreateGym() {
   const [slugTouched, setSlugTouched] = useState(false);
   const [created, setCreated] = useState<TenantCreated | null>(null);
   const [failure, setFailure] = useState<{ message: string; ref?: string } | null>(null);
-  const { register, handleSubmit, setError, setValue, watch, formState } = useForm<Values>({
+  const { register, handleSubmit, setError, setValue, control, formState } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { name: '', slug: '', city: '', email: '', phone: '', ownerName: '', ownerEmail: '', ownerPhone: '', planCode: 'pilot', subscriptionStatus: 'trialing', price: '' },
   });
   const errors = formState.errors;
-  const name = watch('name');
-  const slug = useDebounced(watch('slug').trim().toLowerCase(), 350);
+  const name = useWatch({ control, name: 'name' });
+  const typedSlug = useWatch({ control, name: 'slug' });
+  const slug = useDebounced((typedSlug ?? '').trim().toLowerCase(), 350);
 
   useEffect(() => {
     if (!slugTouched) setValue('slug', slugify(name));

@@ -22,7 +22,6 @@ export function QrCameraDialog({ open, onClose, onCode }: { open: boolean; onClo
     if (!open) return;
     let cancelled = false;
     let done = false;
-    setState('starting');
     (async () => {
       try {
         const { default: QrScanner } = await import('qr-scanner');
@@ -60,6 +59,7 @@ export function QrCameraDialog({ open, onClose, onCode }: { open: boolean; onClo
       cancelled = true;
       scanner.current?.destroy();
       scanner.current = null;
+      setState('starting'); // ready for the next time the dialog opens
     };
   }, [open, onCode]);
 

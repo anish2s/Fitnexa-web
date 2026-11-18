@@ -1,5 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
-import { GYM_LIGHT as GYM, PASSWORD } from './env';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
+import { GYM_LIGHT as GYM } from './env';
 
 /**
  * Milestone 3: front desk and money, on the FitZone demo gym (no GSTIN, Razorpay not connected).
@@ -10,13 +11,6 @@ const run = Date.now().toString().slice(-6);
 let seq = 0;
 const mobile = () => `8${run}${String(seq++).padStart(3, '0')}`;
 
-async function signIn(page: Page, identifier: string) {
-  await page.goto(`${GYM}/login`);
-  await page.getByLabel(/email/i).first().fill(identifier);
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(`${GYM}/`);
-}
 
 async function addMember(page: Page, name: string) {
   await page.goto(`${GYM}/members/new`);
@@ -33,8 +27,8 @@ async function deskSearch(page: Page, text: string) {
   await page.getByLabel('Scan a pass or search members').fill(text);
 }
 
-test('sell with discount, part payment and receipt; check in; collect the rest; refund; cancel', async ({ page, context }) => {
-  await signIn(page, 'owner@fitzone.demo');
+test('sell with discount, part payment and receipt; check in; collect the rest; refund; cancel', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo');
   const name = `Desk Test ${run}`;
   const profile = await addMember(page, name);
 
@@ -63,7 +57,7 @@ test('sell with discount, part payment and receipt; check in; collect the rest; 
   await expect(dialog.getByText(/Receipt RCPT\/\d{4}-\d{2}\/\d{4,}/)).toBeVisible();
 
   // The PDF receipt opens in a new tab from a blob URL (it needs the bearer token).
-  const [tab] = await Promise.all([context.waitForEvent('page'), dialog.getByRole('button', { name: 'Receipt (PDF)' }).click()]);
+  const [tab] = await Promise.all([page.context().waitForEvent('page'), dialog.getByRole('button', { name: 'Receipt (PDF)' }).click()]);
   await expect.poll(() => tab.url()).toMatch(/^blob:/);
   await tab.close();
   await dialog.getByRole('button', { name: 'Done' }).click();
@@ -117,8 +111,8 @@ test('sell with discount, part payment and receipt; check in; collect the rest; 
   await expect(page.getByRole('cell', { name: /Cancelled/ })).toBeVisible();
 });
 
-test('online payment: owner sees it is off; staff are told Razorpay isn’t connected', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
+test('online payment: owner sees it is off; staff are told Razorpay isn’t connected', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo');
   const name = `Online Test ${run}`;
   const profile = await addMember(page, name);
   await page.getByRole('button', { name: 'Sell membership' }).click();
@@ -128,17 +122,17 @@ test('online payment: owner sees it is off; staff are told Razorpay isn’t conn
   await expect(dialog.getByRole('button', { name: 'Pay online' })).toHaveCount(0);
   await dialog.getByRole('button', { name: 'Collect later' }).click();
 
-  await page.getByRole('button', { name: 'Sign out' }).click();
-  await signIn(page, 'desk@fitzone.demo');
-  await page.goto(profile);
-  await page.getByRole('button', { name: 'Collect' }).first().click();
-  await dialog.getByRole('button', { name: 'Pay online' }).click();
-  await expect(dialog.getByText('Online payments aren’t set up for this gym yet.', { exact: false })).toBeVisible();
+  // The same member, seen by front-desk staff (their own browser).
+  const desk = await signedIn(GYM, 'desk@fitzone.demo');
+  await desk.goto(profile);
+  await desk.getByRole('button', { name: 'Collect' }).first().click();
+  const deskDialog = desk.getByRole('dialog');
+  await deskDialog.getByRole('button', { name: 'Pay online' }).click();
+  await expect(deskDialog.getByText('Online payments aren’t set up for this gym yet.', { exact: false })).toBeVisible();
 });
 
-test('front desk staff: no refunds; a bad pass is explained', async ({ page }) => {
-  await signIn(page, 'desk@fitzone.demo');
-  await page.goto(`${GYM}/front-desk`);
+test('front desk staff: no refunds; a bad pass is explained', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'desk@fitzone.demo', '/front-desk');
   await page.getByLabel('Scan a pass or search members').fill('gp1.000000000000000000000000.abc.notavalidsignature');
   await page.keyboard.press('Enter');
   await expect(page.getByText('This QR code isn’t a member pass for this gym.')).toBeVisible();
@@ -149,9 +143,8 @@ test('front desk staff: no refunds; a bad pass is explained', async ({ page }) =
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Refund' })).toHaveCount(0);
 });
 
-test('renewals: tabs load and the dues tab offers WhatsApp and Collect', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/renewals`);
+test('renewals: tabs load and the dues tab offers WhatsApp and Collect', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/renewals');
   await expect(page.getByRole('tab', { name: 'Expiring soon' })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('tab', { name: 'Expired' }).click();
   await expect(page).toHaveURL(/tab=expired/);

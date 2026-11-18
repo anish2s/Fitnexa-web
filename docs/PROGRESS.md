@@ -13,6 +13,32 @@ Each milestone ends with screenshots and stops for the owner's approval.
 
 Milestones 2–5 are a proposal; scope is confirmed at the start of each.
 
+Phase 2 completion report (every gate item with evidence): [PHASE2-REPORT.md](PHASE2-REPORT.md).
+
+## Phase 2 review follow-ups (2026-11-18)
+
+- **Rate limits per visitor**: gym details cached per host for 60 s in the Next server (cleared by edits);
+  the visitor's IP forwarded on every API call (X-Forwarded-For overwritten, from `TRUSTED_PROXY_HOPS`);
+  backend `TRUST_PROXY` now takes the Next server's address(es) and refuses hop counts in production;
+  tests prove two visitors get separate limits and that forged headers from elsewhere are ignored.
+  Deployment requirement (API reachable only through the Next server) in `docs/DEPLOYMENT.md`.
+- **ESLint** (Next.js core-web-vitals + TypeScript) in every workspace, `npm run lint`, CI workflow
+  (lint, build, typecheck, unit tests). All findings fixed (React Compiler rules in auth, effects,
+  `watch` → `useWatch`, etc.); 0 errors, 0 warnings.
+- **Flaky e2e**: Payments "Today" did nothing when clicked before the gym's date had loaded → the
+  period buttons are disabled until then (Playwright waits for enabled). Owner-tools timeouts came from
+  dev-server compile pauses → e2e runs against a production build. A member-list test depended on a
+  seeded member staying on page one → it searches. The suite signs in once per account
+  (`e2e/fixtures.ts`) so it passes under the normal sign-in limits; 3 consecutive runs, 27/27 each.
+- **Retries**: never on 4xx; 5xx/network at most twice (250 ms, 500 ms), so errors show within ~1 s.
+- **API down**: pages answer 503 (+ Retry-After), `/api/*` 503 JSON.
+- **Server page guards**: owner-only and console pages 404 before rendering, by the session's role
+  (new backend `GET /auth/session`, read-only).
+- **Efficiency**: session restore no longer calls `/auth/me` (the refresh response has the user);
+  API calls per e2e run fell from ~720 to ~375.
+- **Unit tests** (dashboard, 28): role → menu, page rules, branding contrast (incl. a 4,096-colour
+  sweep), money in paise, API errors and retry policy, client IP, tenant cache.
+
 ## Milestone 5 — Platform console (2026-11-18)
 
 **Built** (platform host, super admin only; gym hosts answer 404)

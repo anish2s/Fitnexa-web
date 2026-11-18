@@ -8,6 +8,11 @@
     "build": "npm run build -w @fitnexa/dashboard",
     "start": "npm run start -w @fitnexa/dashboard",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "eslint": "^10.15.0",
+    "eslint-config-next": "^16.4.6"
   }
 }

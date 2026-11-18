@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { AlertTriangle, ChevronLeft, ChevronRight, ChevronRight as Go, IndianRupee, Search, Smartphone, Upload, UserPlus, Users } from 'lucide-react';
@@ -108,10 +108,14 @@ export function MemberList() {
   const [q, setQ] = useState(state.q);
   const query = useDebounced(q.trim());
 
-  // Typing a search resets to page 1; the URL keeps whatever was last searched.
+  // Typing a search resets to page 1; the URL keeps whatever was last searched. Acts only when the
+  // typed search changes, so Back/Forward (which change the URL, not the box) are left alone.
+  const lastQuery = useRef(query);
   useEffect(() => {
+    if (query === lastQuery.current) return;
+    lastQuery.current = query;
     if (query !== state.q) update({ q: query, page: 1 });
-  }, [query]);
+  }, [query, state.q, update]);
 
   const members = useQuery({
     queryKey: ['members', state],

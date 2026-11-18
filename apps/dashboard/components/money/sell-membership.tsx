@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
@@ -46,13 +46,14 @@ function SaleForm({ target, onSold, onCancel }: { target: SaleTarget; onSold: (m
     queryFn: () => api.get('/api/v1/plans', { query: { archived: 'false', limit: 100 } }).then((r) => r.data),
   });
   const lastPlanId = current?.plan.id ?? '';
-  const { register, handleSubmit, setError, watch, formState } = useForm<Values>({
+  const { register, handleSubmit, setError, control, formState } = useForm<Values>({
     resolver: zodResolver(schema),
     values: { planId: plans.data?.some((p) => p.id === lastPlanId) ? lastPlanId : (plans.data?.[0]?.id ?? ''), startDate: '', discount: '', notes: '' },
     resetOptions: { keepDirtyValues: true },
   });
   const errors = formState.errors;
-  const plan = plans.data?.find((p) => p.id === watch('planId'));
+  const planId = useWatch({ control, name: 'planId' });
+  const plan = plans.data?.find((p) => p.id === planId);
 
   const submit = handleSubmit(async (v) => {
     setFailure(null);

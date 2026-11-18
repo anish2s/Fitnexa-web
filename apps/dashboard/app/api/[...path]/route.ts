@@ -2,12 +2,15 @@
  * Same-origin proxy: /api/* → the backend API.
  *
  * The browser only ever talks to its own host (powerhouse.yourapp.in), so the refresh cookie stays
- * host-only and there is no CORS. The backend identifies the gym from X-Forwarded-Host, which it
- * honours only when TRUST_PROXY counts this hop (TRUST_PROXY=1 locally, 2 behind Cloudflare + Next).
+ * host-only and there is no CORS. We overwrite X-Forwarded-Host (the gym) and X-Forwarded-For (the
+ * visitor's IP, for per-visitor rate limits; lib/forwarding.ts); whatever the browser sent in those
+ * is dropped. The backend honours them only from this server's address (its TRUST_PROXY).
  * Origin and Sec-Fetch-Site pass through untouched for the backend's CSRF check on /auth/refresh.
  */
 import type { NextRequest } from 'next/server';
 import { API_URL } from '@/lib/env';
+import { forwardedHeaders } from '@/lib/forwarding';
+import { invalidateTenantCache } from '@/lib/tenant-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +18,8 @@ export const dynamic = 'force-dynamic';
 const DROP_REQUEST = new Set([
   'host', 'connection', 'keep-alive', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding',
   'upgrade', 'content-length', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port',
+  // Client-supplied forwarding headers are never passed on; we set our own.
+  'x-forwarded-for', 'forwarded', 'x-real-ip', 'cf-connecting-ip', 'true-client-ip',
 ]);
 const DROP_RESPONSE = new Set([
   'connection', 'keep-alive', 'transfer-encoding', 'content-encoding', 'content-length', 'set-cookie',
@@ -28,8 +33,8 @@ async function proxy(req: NextRequest): Promise<Response> {
   req.headers.forEach((value, key) => {
     if (!DROP_REQUEST.has(key)) headers.set(key, value);
   });
+  for (const [k, v] of Object.entries(forwardedHeaders(req.headers, url.protocol.replace(':', '')))) headers.set(k, v);
   headers.set('x-forwarded-host', host);
-  headers.set('x-forwarded-proto', url.protocol.replace(':', ''));
 
   const init: RequestInit & { duplex?: 'half' } = { method: req.method, headers, redirect: 'manual', cache: 'no-store' };
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -43,8 +48,14 @@ async function proxy(req: NextRequest): Promise<Response> {
   } catch {
     return Response.json(
       { success: false, error: { code: 'API_UNAVAILABLE', message: 'The service is temporarily unavailable. Please try again shortly.' } },
-      { status: 502 },
+      { status: 503, headers: { 'retry-after': '30' } },
     );
+  }
+
+  // Gym name/branding/status changed: page renders must not keep serving the cached copy.
+  if (req.method !== 'GET' && upstream.ok) {
+    if (url.pathname.startsWith('/api/v1/platform/tenants')) invalidateTenantCache();
+    else if (url.pathname === '/api/v1/gym' || url.pathname === '/api/v1/gym/branding') invalidateTenantCache(host);
   }
 
   const out = new Headers();

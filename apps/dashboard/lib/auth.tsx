@@ -9,7 +9,8 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ApiError, createApiClient, type ApiClient, type Me, type SessionUser } from '@fitnexa/api-client';
+import { ApiError, createApiClient, type ApiClient, type Me, type Session, type SessionUser } from '@fitnexa/api-client';
+import { useSite, type Site } from './site';
 
 type AuthState =
   | { status: 'loading' }
@@ -34,28 +35,48 @@ interface AuthApi {
 }
 
 const AuthContext = createContext<AuthApi | null>(null);
+
+/**
+ * What GET /auth/me would say, built from a sign-in or refresh response (same user record from the
+ * API), saving a request on every page load. Sessions from a password or the refresh cookie are
+ * never support sessions; those are confirmed with /auth/me in adoptSupportSession.
+ */
+export function meFromSession(session: Session, site: Site): Me {
+  return {
+    user: session.user,
+    scope: site.scope === 'gym' ? 'tenant' : 'platform',
+    gym: site.scope === 'gym' ? { name: site.tenant.name, slug: site.tenant.slug } : null,
+    impersonatedBy: null,
+  };
+}
 const CHANNEL = 'fx-auth';
 
 export function AuthProvider({ hasSession, children }: { hasSession: boolean; children: ReactNode }) {
   const queryClient = useQueryClient();
+  const site = useSite();
   const [state, setState] = useState<AuthState>(hasSession ? { status: 'loading' } : { status: 'signedOut' });
+  /** Latest state for callbacks (session listener, other tabs); written after each commit. */
   const stateRef = useRef(state);
-  stateRef.current = state;
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
   /** True while this tab runs a support session: cookie restores and other tabs must not replace it. */
   const supportRef = useRef(false);
 
-  const [api] = useState(() =>
-    createApiClient({
-      onSessionChange: (s) => {
-        // Session lost mid-use (refresh cookie expired, revoked, account disabled).
+  const [api] = useState(() => createApiClient());
+
+  // Session lost mid-use (refresh cookie expired, revoked, account disabled).
+  useEffect(
+    () =>
+      api.subscribe((s) => {
         if (!s && stateRef.current.status === 'signedIn') {
           queryClient.clear();
           const wasSupport = supportRef.current;
           supportRef.current = false;
           setState({ status: 'signedOut', reason: wasSupport ? 'support-ended' : 'expired' });
         }
-      },
-    }),
+      }),
+    [api, queryClient],
   );
 
   // Cross-tab sign-in/out. Owned by the effect so it is recreated after StrictMode's remount.
@@ -68,23 +89,32 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
     }
   }, []);
 
+  /**
+   * Exchange the refresh cookie for a session. Resolves to the next state, or null when a support
+   * session was adopted meanwhile (it wins).
+   */
+  const load = useCallback(async (): Promise<AuthState | null> => {
+    try {
+      const session = await api.refresh();
+      return supportRef.current ? null : { status: 'signedIn', me: meFromSession(session, site) };
+    } catch (err) {
+      if (supportRef.current) return null;
+      if (err instanceof ApiError && err.status !== 0 && err.status < 500) return { status: 'signedOut' };
+      return { status: 'error', error: err as ApiError };
+    }
+  }, [api, site]);
+
   const restore = useCallback(async () => {
     setState({ status: 'loading' });
-    try {
-      await api.refresh();
-      const me = await api.me();
-      if (supportRef.current) return; // a support session was adopted meanwhile; it wins
-      setState({ status: 'signedIn', me });
-    } catch (err) {
-      if (supportRef.current) return;
-      if (err instanceof ApiError && err.status !== 0 && err.status < 500) setState({ status: 'signedOut' });
-      else setState({ status: 'error', error: err as ApiError });
-    }
-  }, [api]);
+    const next = await load();
+    if (next) setState(next);
+  }, [load]);
 
+  // First load: the initial state is already "loading" when there is a cookie.
   useEffect(() => {
-    if (hasSession) void restore();
-  }, [hasSession, restore]);
+    if (!hasSession) return;
+    void load().then((next) => next && setState(next));
+  }, [hasSession, load]);
 
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return;
@@ -112,8 +142,7 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
       state,
       api,
       async signIn(identifier, password) {
-        await api.login(identifier, password);
-        const me = await api.me();
+        const me = meFromSession(await api.login(identifier, password), site);
         setState({ status: 'signedIn', me });
         broadcast('signed-in');
         return me;
@@ -149,7 +178,7 @@ export function AuthProvider({ hasSession, children }: { hasSession: boolean; ch
       retry: () => void restore(),
       can: (p) => permissions.has(p),
     };
-  }, [state, api, broadcast, queryClient, restore]);
+  }, [state, api, broadcast, queryClient, restore, site]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

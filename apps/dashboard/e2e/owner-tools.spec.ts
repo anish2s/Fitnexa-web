@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { GYM_LIGHT as GYM, PASSWORD } from './env';
+import { expect, test } from './fixtures';
+import { GYM_LIGHT as GYM } from './env';
 
 /**
  * Milestone 4: owner tools on the FitZone demo gym. Settings changes are put back at the end of
@@ -8,17 +8,9 @@ import { GYM_LIGHT as GYM, PASSWORD } from './env';
 
 const run = Date.now().toString().slice(-6);
 
-async function signIn(page: Page, identifier: string) {
-  await page.goto(`${GYM}/login`);
-  await page.getByLabel(/email/i).first().fill(identifier);
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(`${GYM}/`);
-}
 
-test('gym settings: validation on the field, save, and put back', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/settings`);
+test('gym settings: validation on the field, save, and put back', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/settings');
   const prefix = page.getByLabel('Receipt prefix');
   const original = await prefix.inputValue();
 
@@ -38,9 +30,8 @@ test('gym settings: validation on the field, save, and put back', async ({ page 
   await expect(page.getByText('Gym details saved')).toBeVisible();
 });
 
-test('branding: a new colour re-themes the app, then is put back', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/settings?tab=branding`);
+test('branding: a new colour re-themes the app, then is put back', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/settings?tab=branding');
   const hex = page.getByLabel('Hex');
   const original = await hex.inputValue();
   const accent = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--brand-light-accent').trim().toUpperCase());
@@ -55,9 +46,8 @@ test('branding: a new colour re-themes the app, then is put back', async ({ page
   await expect.poll(accent).not.toBe('#7C3AED');
 });
 
-test('staff: invite with an extra permission, edit, deactivate; audit log records it', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/staff`);
+test('staff: invite with an extra permission, edit, deactivate; audit log records it', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/staff');
   const name = `Desk Hire ${run}`;
   await page.getByRole('button', { name: 'Invite staff' }).click();
   const dialog = page.getByRole('dialog');
@@ -84,9 +74,8 @@ test('staff: invite with an extra permission, edit, deactivate; audit log record
   await expect(page.getByRole('button', { name: /Changed staff permissions/ }).first()).toBeVisible();
 });
 
-test('my account: wrong current password is caught; this device is listed', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/settings?tab=account`);
+test('my account: wrong current password is caught; this device is listed', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/settings?tab=account');
   await page.getByLabel('Current password').fill('definitely-wrong');
   await page.getByLabel('New password', { exact: true }).fill('another-password-123');
   await page.getByLabel('Confirm new password').fill('another-password-123');
@@ -95,9 +84,8 @@ test('my account: wrong current password is caught; this device is listed', asyn
   await expect(page.getByText('This device')).toBeVisible();
 });
 
-test('reports: every report loads, CSV downloads, and too-long ranges are explained', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/reports`);
+test('reports: every report loads, CSV downloads, and too-long ranges are explained', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/reports');
   for (const tab of ['Revenue', 'Memberships sold', 'Renewals', 'Attendance', 'Growth']) {
     await page.getByRole('tab', { name: tab }).click();
     await expect(page.getByText(/Couldn’t load this report/)).toHaveCount(0);
@@ -112,9 +100,8 @@ test('reports: every report loads, CSV downloads, and too-long ranges are explai
   await expect(page.getByText('That range is too long')).toBeVisible();
 });
 
-test('member data: export downloads; erase needs the member code and is permanent', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/members/new`);
+test('member data: export downloads; erase needs the member code and is permanent', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/members/new');
   await page.getByLabel('Full name').fill(`Erase Me ${run}`);
   await page.getByLabel('Phone').first().fill(`6${run}999`);
   await page.getByLabel('The member has agreed to this').check();
@@ -136,13 +123,17 @@ test('member data: export downloads; erase needs the member code and is permanen
   await expect(page.getByRole('button', { name: 'Erase personal data' })).toHaveCount(0);
 });
 
-test('front desk staff: only "My account" in settings; owner tools are not reachable', async ({ page }) => {
-  await signIn(page, 'desk@fitzone.demo');
-  await page.goto(`${GYM}/settings`);
+test('front desk staff: only "My account" in settings; owner tools are not reachable', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'desk@fitzone.demo', '/settings');
   await expect(page.getByRole('tablist', { name: 'Settings' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Change password' })).toBeVisible();
-  for (const path of ['/staff', '/reports', '/audit-log']) {
-    await page.goto(`${GYM}${path}`);
+  // Owner-only pages are refused by the server before they render (real 404); Reports is hidden by
+  // permission in the app (it can be granted to staff).
+  for (const path of ['/staff', '/audit-log']) {
+    const res = await page.goto(`${GYM}${path}`);
+    expect(res?.status(), path).toBe(404);
     await expect(page.getByText(/not found/i).first()).toBeVisible();
   }
+  await page.goto(`${GYM}/reports`);
+  await expect(page.getByText(/not found/i).first()).toBeVisible();
 });

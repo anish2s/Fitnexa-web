@@ -17,11 +17,13 @@ This repo holds no business logic. API types are generated from the backend's Op
 (`/api/v1/openapi.json`) rather than copied by hand.
 
 Each gym is served on its own subdomain (`powerhouse.yourapp.in`). The Next.js apps proxy
-`/api/*` to the API and forward the original host, so the backend can identify the gym.
+`/api/*` to the API and forward the original host (so the backend can identify the gym) and the
+visitor's IP (so rate limits are per visitor). Deployment requirements: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Development
-Needs the backend running (`../fitnexa-backend`, see its docs/DEVELOPMENT.md) **with `TRUST_PROXY=1`**,
-because the dashboard proxies `/api/*` to it and passes the gym's host in `X-Forwarded-Host`.
+Needs the backend running (`../fitnexa-backend`, see its docs/DEVELOPMENT.md) **with
+`TRUST_PROXY=loopback`** (the dashboard runs on the same machine), because the dashboard proxies
+`/api/*` to it and passes the gym's host in `X-Forwarded-Host` and the visitor's IP in `X-Forwarded-For`.
 
 ```bash
 npm install
@@ -41,20 +43,30 @@ Sign in with the demo accounts printed by the backend's `npm run seed` (e.g. `ow
 `desk@powerhouse.demo`, `admin@platform.demo`).
 
 ### Checks
+CI (`.github/workflows/ci.yml`) runs lint, build, typecheck and unit tests on every push.
 ```bash
+npm run lint           # ESLint (Next.js + TypeScript configs) in every workspace
+npm run build          # generates route types; run before typecheck on a fresh clone
 npm run typecheck      # all workspaces
-npm test               # unit tests (api-client, ui)
-npm run build
+npm test               # unit tests (dashboard, api-client, ui)
 npm run gen -w @fitnexa/api-client   # regenerate API types after backend route/schema changes
 ```
 
 ### End-to-end tests
-Against a running dashboard + API with the demo seed. Give the test API a higher sign-in limit so
-repeated runs don't hit the rate limit (`AUTH_RATE_LIMIT_MAX=500` in the backend env):
+Against a **production build** of the dashboard (no dev-server compile pauses) and an API with the
+demo seed and its **normal rate limits** (don't raise `RATE_LIMIT_MAX` / `AUTH_RATE_LIMIT_MAX`). Each
+account signs in through the form once per run and later tests reuse that browser session
+(`e2e/fixtures.ts`), so the suite stays inside the sign-in limits run after run.
 ```bash
-E2E_PORT=3000 E2E_PASSWORD='<seed password>' npm run e2e -w @fitnexa/dashboard
+# API (in ../fitnexa-backend): TRUST_PROXY=loopback, a seeded database, default limits
+# Dashboard: a separate build folder, so it can run next to `npm run dev`
+cd apps/dashboard
+NEXT_DIST_DIR=.next-e2e API_URL=http://127.0.0.1:4000 npx next build
+NEXT_DIST_DIR=.next-e2e API_URL=http://127.0.0.1:4000 npx next start -p 3003
+E2E_PORT=3003 E2E_PASSWORD='<seed password>' npm run e2e
 ```
-Uses the installed Google Chrome.
+Uses the installed Google Chrome. Records are created in the FitZone demo gym (uniquely named).
+The build adds `.next-e2e/types` entries to `tsconfig.json`; don't commit them.
 
 ## Layout
 ```

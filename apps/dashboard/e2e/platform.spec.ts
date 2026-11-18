@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { GYM_LIGHT, PASSWORD, PLATFORM } from './env';
+import { expect, test } from './fixtures';
+import { GYM_LIGHT, PLATFORM } from './env';
 
 /**
  * Milestone 5: platform console. Creates one uniquely named gym per run; "log in as owner" runs
@@ -8,16 +8,10 @@ import { GYM_LIGHT, PASSWORD, PLATFORM } from './env';
 
 const run = Date.now().toString().slice(-6);
 
-async function signInPlatform(page: Page) {
-  await page.goto(`${PLATFORM}/login`);
-  await page.getByLabel('Email').fill('admin@platform.demo');
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(`${PLATFORM}/`);
-}
 
-test('create a gym, edit it, rebrand it, suspend and reactivate it', async ({ page, context }) => {
-  await signInPlatform(page);
+test('create a gym, edit it, rebrand it, suspend and reactivate it', async ({ signedIn }) => {
+  const page = await signedIn(PLATFORM, 'admin@platform.demo');
+  const context = page.context();
   await page.getByRole('link', { name: 'New gym' }).first().click();
 
   // The address is suggested from the name and checked as you type.
@@ -72,8 +66,9 @@ test('create a gym, edit it, rebrand it, suspend and reactivate it', async ({ pa
   await expect(page.getByRole('button', { name: /Gym reactivated/ })).toBeVisible();
 });
 
-test('log in as owner: new tab with the owner session and banner, nothing stored, ended cleanly', async ({ page, context }) => {
-  await signInPlatform(page);
+test('log in as owner: new tab with the owner session and banner, nothing stored, ended cleanly', async ({ signedIn }) => {
+  const page = await signedIn(PLATFORM, 'admin@platform.demo');
+  const context = page.context();
   await page.getByLabel('Search gyms').fill('fitzone');
   await page.getByRole('link', { name: 'FitZone' }).click();
   await page.getByRole('button', { name: 'Log in as owner' }).click();
@@ -107,19 +102,17 @@ test('log in as owner: new tab with the owner session and banner, nothing stored
   await expect(page.getByRole('button', { name: /Support signed in as owner/ }).first()).toBeVisible();
 });
 
-test('platform audit log lists console sign-ins; gym users can’t reach console pages', async ({ page }) => {
-  await signInPlatform(page);
+test('platform audit log lists console sign-ins; gym users can’t reach console pages', async ({ signedIn }) => {
+  const page = await signedIn(PLATFORM, 'admin@platform.demo');
   await page.getByRole('link', { name: 'Audit log' }).click();
   await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Signed in/ }).first()).toBeVisible();
 
-  await page.goto(`${GYM_LIGHT}/login`);
-  await page.getByLabel(/email/i).first().fill('owner@fitzone.demo');
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(`${GYM_LIGHT}/`);
-  await page.goto(`${GYM_LIGHT}/gyms/new`);
-  await expect(page.getByText(/not found/i).first()).toBeVisible();
-  await page.goto(`${GYM_LIGHT}/support-session`);
-  await expect(page.getByText('Open this from the platform console', { exact: false })).toBeVisible();
+  // A gym owner (signed in on their own gym) gets a real 404 for console pages, decided on the server.
+  const owner = await signedIn(GYM_LIGHT, 'owner@fitzone.demo');
+  const res = await owner.goto(`${GYM_LIGHT}/gyms/new`);
+  expect(res?.status()).toBe(404);
+  await expect(owner.getByText(/not found/i).first()).toBeVisible();
+  await owner.goto(`${GYM_LIGHT}/support-session`);
+  await expect(owner.getByText('Open this from the platform console', { exact: false })).toBeVisible();
 });

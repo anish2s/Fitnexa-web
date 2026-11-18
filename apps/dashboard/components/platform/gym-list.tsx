@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { AlertTriangle, Building2, ChevronLeft, ChevronRight, ChevronRight as Go, Plus, Search } from 'lucide-react';
 import { Badge, Button, buttonClasses, Card, EmptyState, Input, Select, Skeleton, Table, TBody, TD, TH, THead, TR, type BadgeTone } from '@fitnexa/ui';
@@ -33,7 +33,6 @@ export function PlatformGymList() {
   const [page, setPage] = useState(1);
   const query = useDebounced(q.trim());
 
-  useEffect(() => setPage(1), [query, status]);
 
   const gyms = useQuery({
     queryKey: ['platform', 'tenants', query, status, page],
@@ -58,11 +57,11 @@ export function PlatformGymList() {
 
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-border p-4 md:flex-row md:items-center">
-          <Input leftIcon={<Search />} placeholder="Name or slug" aria-label="Search gyms" value={q} onChange={(e) => setQ(e.target.value)} wrapperClassName="md:w-72" />
+          <Input leftIcon={<Search />} placeholder="Name or slug" aria-label="Search gyms" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} wrapperClassName="md:w-72" />
           <Select
             aria-label="Status"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => { setStatus(e.target.value); setPage(1); }}
             options={[{ value: '', label: 'All statuses' }, { value: 'active', label: 'Active' }, { value: 'suspended', label: 'Suspended' }]}
             wrapperClassName="md:w-44"
           />

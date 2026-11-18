@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { GYM_LIGHT as GYM, PASSWORD } from './env';
+import { expect, test } from './fixtures';
+import { GYM_LIGHT as GYM } from './env';
 
 /**
  * Milestone 2: members and plans. Runs on the FitZone demo gym and creates uniquely named records,
@@ -11,17 +11,9 @@ const run = Date.now().toString().slice(-6);
 let seq = 0;
 const mobile = () => `9${run}${String(seq++).padStart(3, '0')}`;
 
-async function signIn(page: Page, identifier: string) {
-  await page.goto(`${GYM}/login`);
-  await page.getByLabel(/email/i).first().fill(identifier);
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(`${GYM}/`);
-}
 
-test('register a member: consent and duplicate phone are enforced, then edit, archive and restore', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/members`);
+test('register a member: consent and duplicate phone are enforced, then edit, archive and restore', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/members');
   await page.getByRole('link', { name: 'Add member' }).click();
   await expect(page.getByRole('heading', { name: 'Add member' })).toBeVisible();
 
@@ -76,9 +68,8 @@ test('register a member: consent and duplicate phone are enforced, then edit, ar
   await expect(page.getByRole('link', { name })).toBeVisible();
 });
 
-test('CSV import: row errors block the import; a clean file imports after consent', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/members/import`);
+test('CSV import: row errors block the import; a clean file imports after consent', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/members/import');
 
   const bad = ['name,phone,email', `,${mobile()},`, `Bad Email ${run},${mobile()},not-an-email`, `Clash ${run},9822222222,`].join('\n');
   await page.locator('input[type=file]').setInputFiles({ name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from(bad) });
@@ -102,9 +93,8 @@ test('CSV import: row errors block the import; a clean file imports after consen
   await expect(page.getByRole('link', { name: `Import One ${run}` })).toBeVisible();
 });
 
-test('plans: create, duplicate name, edit price, archive and restore', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/plans`);
+test('plans: create, duplicate name, edit price, archive and restore', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/plans');
   const name = `Test Plan ${run}`;
 
   await page.getByRole('button', { name: 'New plan' }).click();
@@ -141,12 +131,13 @@ test('plans: create, duplicate name, edit price, archive and restore', async ({ 
   await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
 });
 
-test('front desk staff: can add and edit, but not import, archive or manage plans', async ({ page }) => {
-  await signIn(page, 'desk@fitzone.demo');
-  await page.goto(`${GYM}/members`);
+test('front desk staff: can add and edit, but not import, archive or manage plans', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'desk@fitzone.demo', '/members');
   await expect(page.getByRole('link', { name: 'Add member' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Import CSV' })).toHaveCount(0);
 
+  // Search rather than rely on the seeded member still being on page one (each run adds members).
+  await page.getByLabel('Search members').fill('Meera Iyer');
   await page.getByRole('link', { name: 'Meera Iyer' }).click();
   await expect(page.getByRole('link', { name: 'Edit' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Archive' })).toHaveCount(0);
@@ -160,17 +151,15 @@ test('front desk staff: can add and edit, but not import, archive or manage plan
   await expect(page.getByRole('button', { name: 'Edit' })).toHaveCount(0);
 });
 
-test('a member id from another gym or a bad link shows "Member not found"', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/members/000000000000000000000000`);
+test('a member id from another gym or a bad link shows "Member not found"', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/members/000000000000000000000000');
   await expect(page.getByText('Member not found')).toBeVisible();
   await page.goto(`${GYM}/members/not-an-id`);
   await expect(page.getByText('Member not found')).toBeVisible();
 });
 
-test('member list shows membership status, expiry and dues, and filters by them', async ({ page }) => {
-  await signIn(page, 'owner@fitzone.demo');
-  await page.goto(`${GYM}/members`);
+test('member list shows membership status, expiry and dues, and filters by them', async ({ signedIn }) => {
+  const page = await signedIn(GYM, 'owner@fitzone.demo', '/members');
   for (const h of ['Plan', 'Status', 'Expires', 'Balance due']) await expect(page.locator('thead').getByText(h, { exact: true })).toBeVisible();
 
   // Has dues: every row owes money; the filter is kept in the URL.

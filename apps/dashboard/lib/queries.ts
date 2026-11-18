@@ -2,6 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from './auth';
+import { retryDelay, shouldRetry } from './retry';
+
+/*
+ * Retries for every query here and in the app default (components/providers.tsx) follow
+ * lib/retry.ts: never on 4xx, at most twice on 5xx/network errors, done within about a second.
+ */
 
 /** GET /dashboard: KPIs for the overview and the Renewals nav badge (shared cache entry). */
 export function useDashboard() {
@@ -19,7 +25,9 @@ export function useMember(id: string) {
   return useQuery({
     queryKey: ['member', id],
     queryFn: () => api.get('/api/v1/members/{id}', { params: { id } }).then((r) => r.data),
-    retry: (n, err) => (err as { status?: number }).status !== 404 && n < 2,
+    // Explicit, though it is also the app default: a 404 shows "Member not found" at once.
+    retry: shouldRetry,
+    retryDelay,
   });
 }
 

@@ -57,6 +57,13 @@ export const PLATFORM_ROUTES: RouteSection[] = [
   { label: 'Account', routes: [{ href: '/settings', label: 'Settings', icon: <Settings /> }] },
 ];
 
+/** The menu a signed-in person sees: routes they hold the permission for, empty sections dropped. */
+export function visibleNav(sections: RouteSection[], can: (permission: string) => boolean): RouteSection[] {
+  return sections
+    .map((s) => ({ ...s, routes: s.routes.filter((r) => !r.permission || can(r.permission)) }))
+    .filter((s) => s.routes.length > 0);
+}
+
 export function findRoute(sections: RouteSection[], href: string): Route | undefined {
   for (const s of sections) for (const r of s.routes) if (r.href === href) return r;
   return undefined;

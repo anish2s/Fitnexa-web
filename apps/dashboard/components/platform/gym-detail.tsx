@@ -223,7 +223,6 @@ export function GymDetail({ id }: { id: string }) {
   const detail = useQuery({
     queryKey: ['platform', 'tenant', id],
     queryFn: () => api.get('/api/v1/platform/tenants/{id}', { params: { id } }).then((r) => r.data),
-    retry: (n, err) => (err as { status?: number }).status !== 404 && n < 2,
   });
 
   const saved = (g: GymView) => {
