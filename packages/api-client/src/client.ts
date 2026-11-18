@@ -61,6 +61,8 @@ export interface RequestOptions<P extends keyof paths, M extends Method> {
   params?: PathParamsOf<P, M>;
   query?: QueryOf<P, M>;
   body?: JsonBody<P, M>;
+  /** A non-JSON body sent as-is, e.g. a CSV file for `POST /members/import`. */
+  rawBody?: { contentType: string; data: string };
   /**
    * Money-recording calls need an Idempotency-Key. `true` generates one for this call; pass a
    * string to reuse a key across user-initiated retries of the same intended payment.
@@ -87,6 +89,7 @@ interface InternalRequest {
   method: string;
   url: string;
   body?: unknown;
+  rawBody?: { contentType: string; data: string };
   auth: boolean;
   idempotencyKey?: string;
   signal?: AbortSignal;
@@ -110,14 +113,15 @@ export function createApiClient(opts: ApiClientOptions = {}) {
 
   async function send(req: InternalRequest): Promise<Response> {
     const headers: Record<string, string> = { Accept: 'application/json', ...opts.headers };
-    if (req.body !== undefined) headers['Content-Type'] = 'application/json';
+    if (req.rawBody) headers['Content-Type'] = req.rawBody.contentType;
+    else if (req.body !== undefined) headers['Content-Type'] = 'application/json';
     if (req.auth && session) headers.Authorization = `Bearer ${session.accessToken}`;
     if (req.idempotencyKey) headers['Idempotency-Key'] = req.idempotencyKey;
     try {
       return await doFetch(baseUrl + req.url, {
         method: req.method,
         headers,
-        body: req.body === undefined ? undefined : JSON.stringify(req.body),
+        body: req.rawBody ? req.rawBody.data : req.body === undefined ? undefined : JSON.stringify(req.body),
         credentials: 'include',
         signal: req.signal,
       });
@@ -207,6 +211,7 @@ export function createApiClient(opts: ApiClientOptions = {}) {
         method: method.toUpperCase(),
         url: buildUrl(path as string, o.params as Record<string, unknown>, o.query as Record<string, unknown>),
         body: o.body,
+        rawBody: o.rawBody,
         auth: o.auth ?? true,
         idempotencyKey: o.idempotencyKey === true ? newIdempotencyKey() : o.idempotencyKey,
         signal: o.signal,

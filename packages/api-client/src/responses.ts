@@ -152,6 +152,157 @@ export interface PlatformTenantListItem {
   createdAt: string;
 }
 
+// ---- Members (Milestone 2) ----
+
+export type Gender = 'male' | 'female' | 'other' | 'undisclosed';
+
+/** GET /members item */
+export interface MemberListItem {
+  id: string;
+  memberCode: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  photoUrl: string | null;
+  joinDate: string;
+  appAccess: boolean;
+  archivedAt: string | null;
+  /** Current membership, picked like the profile (active, else next upcoming, else latest). */
+  membership: MemberListMembership;
+  /** Owed across all non-cancelled memberships; never negative. */
+  balanceDuePaise: number;
+}
+
+export interface MemberListMembership {
+  status: 'active' | 'upcoming' | 'expired' | 'none';
+  /** Active, ends within the gym's renewal reminder window, not yet renewed. */
+  expiringSoon: boolean;
+  plan: { id: string; name: string } | null;
+  startDate: string | null;
+  endDate: string | null;
+  daysLeft: number | null;
+  nextStartDate: string | null;
+}
+
+export interface EmergencyContact {
+  name: string;
+  phone: string | null;
+  relation: string | null;
+}
+
+export type PlanDuration = 'monthly' | 'quarterly' | 'half_yearly' | 'yearly';
+export type TaxMode = 'inclusive' | 'exclusive' | 'none';
+export type MembershipStatus = 'active' | 'upcoming' | 'expired' | 'cancelled';
+export type PaymentStatus = 'unpaid' | 'partial' | 'paid' | 'overpaid';
+
+/** A membership as sold (plan snapshot, money in paise). */
+export interface MembershipView {
+  id: string;
+  memberId: string;
+  plan: { id: string; name: string; duration: PlanDuration; months: number; pricePaise: number; taxMode: TaxMode; gstRate: number };
+  discountPaise: number;
+  basePaise: number;
+  gstPaise: number;
+  totalPaise: number;
+  paidPaise: number;
+  /** Negative = overpaid. */
+  balancePaise: number;
+  paymentStatus: PaymentStatus | string;
+  startDate: string;
+  endDate: string;
+  kind: string;
+  status: MembershipStatus;
+  /** Days left incl. today (active) or until it starts (upcoming); null otherwise. */
+  daysLeft: number | null;
+  cancelledAt: string | null;
+  cancelReason?: string | null;
+  notes?: string | null;
+  soldBy?: string | null;
+}
+
+export interface MembershipSummary {
+  status: MembershipStatus | 'none';
+  current: MembershipView | null;
+  /** A renewal already queued after the active one. */
+  nextStartDate: string | null;
+}
+
+/** GET /members/:id (and POST/PATCH results) */
+export interface MemberDetail {
+  id: string;
+  memberCode: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  gender: Gender | null;
+  dateOfBirth: string | null;
+  joinDate: string;
+  emergencyContact: EmergencyContact | null;
+  photoUrl: string | null;
+  /** Staff-only. */
+  notes: string | null;
+  consent: { at: string; version: string } | null;
+  appAccess: { enabled: boolean; reason: 'no_email' | 'archived' | null; lastLoginAt: string | null };
+  membership: MembershipSummary;
+  archivedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+/** GET /members/:id/memberships */
+export interface MemberMemberships {
+  summary: MembershipSummary;
+  items: MembershipView[];
+}
+
+/** POST /members/import (also `error.details` of a 422 IMPORT_INVALID) */
+export interface ImportReport {
+  dryRun: boolean;
+  total: number;
+  valid: number;
+  errorCount: number;
+  errors: { row: number; field: string | null; message: string }[];
+  created: number;
+  firstCode?: string;
+  lastCode?: string;
+}
+
+/** POST /uploads/signature: fields to POST to Cloudinary along with the file. */
+export interface SignedUpload {
+  uploadUrl: string;
+  fields: Record<string, string>;
+  publicId: string;
+  deliveryUrl: string;
+}
+
+// ---- Plans ----
+
+/** GET /plans item, GET/POST/PATCH /plans/:id */
+export interface Plan {
+  id: string;
+  name: string;
+  description: string | null;
+  duration: PlanDuration;
+  months: number;
+  pricePaise: number;
+  taxMode: TaxMode;
+  gstRate: number;
+  /** What a member pays and how much of it is GST. */
+  breakdown: { basePaise: number; gstPaise: number; totalPaise: number };
+  archivedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+/** GET /gym (the fields the dashboard reads so far) */
+export interface GymView {
+  id: string;
+  name: string;
+  slug: string;
+  settings: { timezone?: string; gstin?: string | null; [k: string]: unknown };
+  [k: string]: unknown;
+}
+
 /**
  * `data` type per endpoint, keyed "<method> <path>" exactly as in the OpenAPI paths. Endpoints not
  * listed here return `unknown` until a screen needs them.
@@ -172,4 +323,22 @@ export interface ResponseMap {
   'get /api/v1/payments': PaymentListItem[];
   'get /api/v1/memberships/expiring': ExpiringMembership[];
   'get /api/v1/platform/tenants': PlatformTenantListItem[];
+  'get /api/v1/gym': GymView;
+  'get /api/v1/members': MemberListItem[];
+  'post /api/v1/members': MemberDetail;
+  'get /api/v1/members/{id}': MemberDetail;
+  'patch /api/v1/members/{id}': MemberDetail;
+  'post /api/v1/members/{id}/archive': MemberDetail;
+  'post /api/v1/members/{id}/restore': MemberDetail;
+  'put /api/v1/members/{id}/photo': MemberDetail;
+  'delete /api/v1/members/{id}/photo': MemberDetail;
+  'get /api/v1/members/{id}/memberships': MemberMemberships;
+  'post /api/v1/members/import': ImportReport;
+  'post /api/v1/uploads/signature': SignedUpload;
+  'get /api/v1/plans': Plan[];
+  'post /api/v1/plans': Plan;
+  'get /api/v1/plans/{id}': Plan;
+  'patch /api/v1/plans/{id}': Plan;
+  'post /api/v1/plans/{id}/archive': Plan;
+  'post /api/v1/plans/{id}/restore': Plan;
 }

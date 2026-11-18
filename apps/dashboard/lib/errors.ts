@@ -29,3 +29,45 @@ export function safeNext(next: string | null | undefined, fallback = '/'): strin
   if (next.startsWith('/login') || next.startsWith('/api/')) return fallback;
   return next;
 }
+
+const ACTION_MESSAGES: Record<string, string> = {
+  DUPLICATE: 'A member with this phone or email already exists in this gym.',
+  UPLOADS_NOT_CONFIGURED: 'Photo uploads aren’t set up for this gym yet.',
+  NOT_FOUND: 'This record no longer exists. It may have been removed.',
+};
+
+/** Like errorMessage, with wording for member/plan actions. */
+export function actionMessage(err: unknown): string {
+  if (err instanceof ApiError && ACTION_MESSAGES[err.code]) return ACTION_MESSAGES[err.code]!;
+  return errorMessage(err);
+}
+
+/**
+ * Puts the API's field errors (422 VALIDATION_ERROR, or the field list of a 409 DUPLICATE) on the
+ * matching form fields. `fields` are the form's field names (nested ones dotted, e.g.
+ * "emergencyContact.phone"); an API path matches a field exactly, or else its closest parent field.
+ * Returns true if any field got a message, so the caller can skip a generic banner.
+ */
+export function applyFieldErrors(err: unknown, setError: (field: never, e: { message: string }) => void, fields: readonly string[]): boolean {
+  if (!(err instanceof ApiError)) return false;
+  const pairs: [string, string][] =
+    err.code === 'VALIDATION_ERROR'
+      ? Object.entries(err.fieldErrors())
+      : err.code === 'DUPLICATE'
+        ? ((err.details as { fields?: string[] } | undefined)?.fields ?? []).map((f) => [f, DUPLICATE_FIELD[f] ?? 'Already in use'])
+        : [];
+  let hit = false;
+  for (const [path, message] of pairs) {
+    const field = fields.includes(path) ? path : fields.find((f) => path.startsWith(`${f}.`));
+    if (!field) continue;
+    setError(field as never, { message });
+    hit = true;
+  }
+  return hit;
+}
+
+const DUPLICATE_FIELD: Record<string, string> = {
+  phone: 'Another member already has this phone number',
+  email: 'This email is already used in this gym',
+  nameKey: 'A plan with this name already exists',
+};

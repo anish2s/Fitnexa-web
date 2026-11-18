@@ -124,3 +124,17 @@ export function _typeChecks(api: ReturnType<typeof createApiClient>) {
   void api.delete('/api/v1/dashboard');
   void api.get('/api/v1/dashboard').then((r) => r.data.members.active satisfies number);
 }
+
+test('rawBody is sent as-is with its own content type (CSV import)', async () => {
+  const { calls, fetch } = fakeFetch({
+    '/api/v1/auth/login': [{ status: 200, body: session('A') }],
+    '/api/v1/members/import': [{ status: 200, body: { success: true, data: { total: 1 } } }],
+  });
+  const api = createApiClient({ fetch });
+  await api.login('owner@x', 'pw');
+  const csv = 'name,phone\nAsha,9876543210\n';
+  await api.post('/api/v1/members/import', { query: { dryRun: 'true' }, rawBody: { contentType: 'text/csv', data: csv } });
+  assert.equal(calls[1]!.headers['Content-Type'], 'text/csv');
+  assert.equal(calls[1]!.body, csv);
+  assert.equal(calls[1]!.url, '/api/v1/members/import?dryRun=true');
+});

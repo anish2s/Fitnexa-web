@@ -24,7 +24,7 @@ export const GYM_ROUTES: RouteSection[] = [
     routes: [
       { href: '/', label: 'Overview', icon: <LayoutDashboard />, permission: 'dashboard:read' },
       { href: '/front-desk', label: 'Front desk', icon: <ScanLine />, permission: 'attendance:checkin', comingIn: 'Milestone 3' },
-      { href: '/members', label: 'Members', icon: <Users />, permission: 'members:read', comingIn: 'Milestone 2' },
+      { href: '/members', label: 'Members', icon: <Users />, permission: 'members:read' },
       { href: '/renewals', label: 'Renewals', icon: <CalendarClock />, permission: 'memberships:read', comingIn: 'Milestone 3' },
     ],
   },
@@ -32,7 +32,7 @@ export const GYM_ROUTES: RouteSection[] = [
     label: 'Finance',
     routes: [
       { href: '/payments', label: 'Payments', icon: <CreditCard />, permission: 'payments:read', comingIn: 'Milestone 3' },
-      { href: '/plans', label: 'Plans', icon: <Tag />, permission: 'plans:read', comingIn: 'Milestone 2' },
+      { href: '/plans', label: 'Plans', icon: <Tag />, permission: 'plans:read' },
       { href: '/reports', label: 'Reports', icon: <BarChart3 />, permission: 'reports:read', comingIn: 'Milestone 4' },
     ],
   },

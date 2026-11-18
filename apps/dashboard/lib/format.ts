@@ -99,3 +99,61 @@ export const METHOD_LABEL: Record<string, string> = {
   bank_transfer: 'Bank transfer',
   razorpay: 'Online',
 };
+
+// ---- Members & plans ----
+
+/** +919811111111 → +91 98111 11111 (Indian mobiles); other numbers are shown as stored. */
+export function phone(e164: string | null | undefined): string {
+  if (!e164) return '—';
+  const m = /^\+91(\d{5})(\d{5})$/.exec(e164);
+  return m ? `+91 ${m[1]} ${m[2]}` : e164;
+}
+
+/** E.164 → what a person would type in the phone field (Indian numbers without +91). */
+export function phoneForInput(e164: string | null | undefined): string {
+  if (!e164) return '';
+  const m = /^\+91(\d{10})$/.exec(e164);
+  return m ? m[1]! : e164;
+}
+
+export const DURATION_LABEL: Record<string, string> = {
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  half_yearly: 'Half-yearly',
+  yearly: 'Yearly',
+};
+
+export const MONTHS_LABEL = (months: number) => (months === 1 ? '1 month' : `${months} months`);
+
+export const GENDER_LABEL: Record<string, string> = {
+  male: 'Male',
+  female: 'Female',
+  other: 'Other',
+  undisclosed: 'Prefer not to say',
+};
+
+export const TAX_LABEL: Record<string, string> = {
+  inclusive: 'GST included',
+  exclusive: 'GST extra',
+  none: 'No GST',
+};
+
+/** "4500" or "4,500.50" (rupees typed in a form) → integer paise, or null if not a valid amount. */
+export function rupeesToPaise(input: string): number | null {
+  const clean = input.replace(/[,\s₹]/g, '');
+  if (!/^\d+(\.\d{1,2})?$/.test(clean)) return null;
+  const [r, p = ''] = clean.split('.');
+  return Number(r) * 100 + Number(p.padEnd(2, '0'));
+}
+
+/** Integer paise → plain rupees for a form field ("4500" or "4500.50"). */
+export function paiseToRupees(paise: number): string {
+  return paise % 100 === 0 ? String(paise / 100) : (paise / 100).toFixed(2);
+}
+
+/** Whole years between a YYYY-MM-DD birth date and `today` (YYYY-MM-DD). */
+export function ageOn(dateOfBirth: string, today: string): number {
+  const [by, bm, bd] = dateOfBirth.split('-').map(Number);
+  const [ty, tm, td] = today.split('-').map(Number);
+  return ty! - by! - (tm! < bm! || (tm === bm && td! < bd!) ? 1 : 0);
+}

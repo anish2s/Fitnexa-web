@@ -5,6 +5,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { AlertTriangle, Building2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, Input, Select, Skeleton, Table, TBody, TD, TH, THead, TR, type BadgeTone } from '@fitnexa/ui';
 import { useAuth } from '@/lib/auth';
+import { useDebounced } from '@/lib/use-debounced';
 import { fullDate, num } from '@/lib/format';
 import { errorMessage } from '@/lib/errors';
 import { PageHeader } from '@/components/page-header';
@@ -22,14 +23,6 @@ const SUB: Record<string, { label: string; tone: BadgeTone }> = {
 };
 const LIMIT = 20;
 
-function useDebounced<T>(value: T, ms = 300) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), ms);
-    return () => clearTimeout(t);
-  }, [value, ms]);
-  return v;
-}
 
 /** Super admin: every gym on the platform (read-only in Milestone 1). */
 export function PlatformGymList() {

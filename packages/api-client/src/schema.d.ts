@@ -2736,6 +2736,8 @@ export interface operations {
                 sort?: "-joinDate" | "joinDate" | "name" | "memberCode";
                 joinedFrom?: string;
                 joinedTo?: string;
+                status?: "active" | "expiring" | "upcoming" | "expired" | "none";
+                due?: "true" | "false";
             };
             header?: never;
             path?: never;

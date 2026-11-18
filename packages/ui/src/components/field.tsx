@@ -1,4 +1,4 @@
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '../cn';
 
@@ -138,3 +138,68 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
     </kbd>
   );
 }
+
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: ReactNode;
+  hint?: ReactNode;
+  error?: ReactNode;
+  wrapperClassName?: string;
+}
+
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
+  { label, hint, error, className, wrapperClassName, id, required, rows = 3, ...props },
+  ref,
+) {
+  const auto = useId();
+  const fieldId = id ?? auto;
+  return (
+    <FieldShell id={fieldId} label={label} hint={hint} error={error} required={required} className={wrapperClassName}>
+      <textarea
+        ref={ref}
+        id={fieldId}
+        rows={rows}
+        required={required}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${fieldId}-error` : hint ? `${fieldId}-hint` : undefined}
+        className={cn(control, 'h-auto resize-y px-3 py-2', error ? 'border-danger focus:border-danger focus:ring-danger-soft' : 'border-border', className)}
+        {...props}
+      />
+    </FieldShell>
+  );
+});
+
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
+  label: ReactNode;
+  description?: ReactNode;
+  error?: ReactNode;
+  wrapperClassName?: string;
+}
+
+/** Native checkbox with a label (and optional description) that is part of the click target. */
+export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
+  { label, description, error, className, wrapperClassName, id, ...props },
+  ref,
+) {
+  const auto = useId();
+  const boxId = id ?? auto;
+  return (
+    <div className={cn('flex flex-col gap-1.5', wrapperClassName)}>
+      <label htmlFor={boxId} className="flex cursor-pointer items-start gap-3">
+        <input
+          ref={ref}
+          id={boxId}
+          type="checkbox"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${boxId}-error` : undefined}
+          className={cn('mt-0.5 size-4 shrink-0 cursor-pointer rounded-xs border-border accent-[var(--accent)]', className)}
+          {...props}
+        />
+        <span className="min-w-0 text-sm">
+          <span className="font-medium text-fg">{label}</span>
+          {description && <span className="mt-0.5 block text-muted">{description}</span>}
+        </span>
+      </label>
+      {error && <p id={`${boxId}-error`} className="pl-7 text-xs text-danger-text">{error}</p>}
+    </div>
+  );
+});
