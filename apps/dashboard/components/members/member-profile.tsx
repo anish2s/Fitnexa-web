@@ -3,15 +3,18 @@
 import Link from 'next/link';
 import { useState, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Archive, ArchiveRestore, ArrowLeft, CalendarClock, Mail, Pencil, Phone, ShieldCheck, Smartphone, UserX } from 'lucide-react';
-import { Badge, Button, buttonClasses, Card, CardBody, CardHeader, EmptyState, Skeleton, Table, TBody, TD, TH, THead, TR, useToast, type BadgeTone } from '@fitnexa/ui';
+import { AlertTriangle, Archive, ArchiveRestore, ArrowLeft, ArrowUpRight, Ban, CalendarClock, IndianRupee, LogIn, Mail, Pencil, Phone, QrCode, RefreshCw, ShieldCheck, ShoppingBag, Smartphone, UserX } from 'lucide-react';
+import { Badge, Button, buttonClasses, Card, CardBody, CardHeader, EmptyState, Skeleton, Table, TBody, TD, TH, THead, TR, Textarea, useToast, type BadgeTone } from '@fitnexa/ui';
 import { ApiError, type MemberDetail, type MembershipView } from '@fitnexa/api-client';
 import { useAuth } from '@/lib/auth';
 import { useDashboard, useMember } from '@/lib/queries';
-import { ageOn, DURATION_LABEL, fullDate, GENDER_LABEL, inr, phone, timeAgo } from '@/lib/format';
-import { errorMessage } from '@/lib/errors';
+import { ageOn, DURATION_LABEL, fullDate, GENDER_LABEL, inr, METHOD_LABEL, phone, timeAgo } from '@/lib/format';
+import { actionMessage, errorMessage } from '@/lib/errors';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { MemberPhoto } from './member-photo';
+import { CollectPaymentDialog, payableOf, useMoneyRefresh, type Payable } from '@/components/money/collect-payment';
+import { SellMembershipDialog, type SaleTarget } from '@/components/money/sell-membership';
+import { PaymentDetailDialog, formatWhen } from '@/components/money/payment-detail';
 
 export const MEMBERSHIP_STATUS: Record<string, { label: string; tone: BadgeTone }> = {
   active: { label: 'Active', tone: 'success' },
@@ -39,7 +42,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 const none = <span className="text-subtle">Not recorded</span>;
 
-function CurrentMembership({ member }: { member: MemberDetail }) {
+function CurrentMembership({ member, onSell, onCollect }: { member: MemberDetail; onSell?: () => void; onCollect?: (p: Payable) => void }) {
   const { status, current, nextStartDate } = member.membership;
   const s = MEMBERSHIP_STATUS[status] ?? MEMBERSHIP_STATUS.none!;
   return (
@@ -47,7 +50,7 @@ function CurrentMembership({ member }: { member: MemberDetail }) {
       <CardHeader title="Membership" action={<Badge tone={s.tone} dot>{s.label}</Badge>} />
       <CardBody>
         {!current ? (
-          <p className="text-sm text-muted">No membership yet. Selling memberships arrives with the front desk screens in Milestone 3.</p>
+          <p className="text-sm text-muted">No membership yet.</p>
         ) : (
           <div className="flex flex-col gap-4">
             <div>
@@ -74,8 +77,18 @@ function CurrentMembership({ member }: { member: MemberDetail }) {
             {current.balancePaise > 0 && (
               <div className="flex items-center justify-between rounded-lg border border-warning/40 bg-warning-soft px-3 py-2.5 text-sm">
                 <span>Balance due</span>
-                <span className="font-semibold text-warning-text tabular-nums">{inr(current.balancePaise)}</span>
+                <span className="font-semibold text-warning-text tabular-nums">{inr(current.balancePaise, true)}</span>
               </div>
+            )}
+          </div>
+        )}
+        {(onSell || (onCollect && current && current.balancePaise > 0)) && (
+          <div className="mt-4 flex gap-2 [&>*]:flex-1">
+            {onCollect && current && current.balancePaise > 0 && (
+              <Button variant="secondary" leftIcon={<IndianRupee className="size-4" />} onClick={() => onCollect(payableOf(current, member.name))}>Collect</Button>
+            )}
+            {onSell && (
+              <Button leftIcon={current ? <RefreshCw className="size-4" /> : <ShoppingBag className="size-4" />} onClick={onSell}>{current ? 'Renew' : 'Sell membership'}</Button>
             )}
           </div>
         )}
@@ -84,7 +97,7 @@ function CurrentMembership({ member }: { member: MemberDetail }) {
   );
 }
 
-function MembershipHistory({ memberId }: { memberId: string }) {
+function MembershipHistory({ memberId, onCollect, onCancel }: { memberId: string; onCollect?: (m: MembershipView) => void; onCancel?: (m: MembershipView) => void }) {
   const { api } = useAuth();
   const history = useQuery({
     queryKey: ['member', memberId, 'memberships'],
@@ -109,6 +122,7 @@ function MembershipHistory({ memberId }: { memberId: string }) {
               <TH className="hidden text-right sm:table-cell">Total</TH>
               <TH className="hidden sm:table-cell">Payment</TH>
               <TH>Status</TH>
+              {(onCollect || onCancel) && <TH className="w-10"><span className="sr-only">Actions</span></TH>}
             </tr>
           </THead>
           <TBody>
@@ -122,13 +136,137 @@ function MembershipHistory({ memberId }: { memberId: string }) {
                 <TD className="hidden sm:table-cell">
                   <Badge tone={PAYMENT_STATUS[m.paymentStatus]?.tone ?? 'neutral'}>{PAYMENT_STATUS[m.paymentStatus]?.label ?? m.paymentStatus}</Badge>
                 </TD>
-                <TD><Badge tone={MEMBERSHIP_STATUS[m.status]?.tone ?? 'neutral'} dot>{MEMBERSHIP_STATUS[m.status]?.label ?? m.status}</Badge></TD>
+                <TD>
+                  <Badge tone={MEMBERSHIP_STATUS[m.status]?.tone ?? 'neutral'} dot>{MEMBERSHIP_STATUS[m.status]?.label ?? m.status}</Badge>
+                  {m.status === 'cancelled' && m.cancelReason && <p className="mt-1 max-w-48 truncate text-xs text-subtle" title={m.cancelReason}>{m.cancelReason}</p>}
+                </TD>
+                {(onCollect || onCancel) && (
+                  <TD>
+                    <div className="flex justify-end gap-1">
+                      {onCollect && m.status !== 'cancelled' && m.balancePaise > 0 && (
+                        <Button size="sm" variant="secondary" onClick={() => onCollect(m)} aria-label={`Collect ${inr(m.balancePaise, true)}`}>
+                          <IndianRupee className="size-3.5" /> <span className="tabular-nums">{inr(m.balancePaise)}</span>
+                        </Button>
+                      )}
+                      {onCancel && (m.status === 'active' || m.status === 'upcoming') && (
+                        <Button size="icon" variant="ghost" onClick={() => onCancel(m)} aria-label={`Cancel ${m.plan.name} membership`} title="Cancel membership"><Ban className="size-4" /></Button>
+                      )}
+                    </div>
+                  </TD>
+                )}
               </TR>
             ))}
           </TBody>
         </Table>
       )}
     </Card>
+  );
+}
+
+function MemberPayments({ memberId, onOpen }: { memberId: string; onOpen: (paymentId: string) => void }) {
+  const { api } = useAuth();
+  const q = useQuery({
+    queryKey: ['payments', 'member', memberId],
+    queryFn: () => api.get('/api/v1/members/{id}/payments', { params: { id: memberId } }).then((r) => r.data),
+  });
+  const rows = (q.data ?? []).slice(0, 8);
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader
+        title="Payments"
+        action={(q.data?.length ?? 0) > 0 && <Link href={`/payments?member=${memberId}`} className={buttonClasses({ variant: 'ghost', size: 'sm' })}>All <ArrowUpRight className="size-4" /></Link>}
+      />
+      {q.isError ? (
+        <p className="px-5 pb-5 text-sm text-muted">{errorMessage(q.error)}</p>
+      ) : !q.data ? (
+        <div className="flex flex-col gap-2 px-5 pb-5">{[0, 1].map((i) => <Skeleton key={i} className="h-10" />)}</div>
+      ) : rows.length === 0 ? (
+        <p className="px-5 pb-5 text-sm text-muted">No payments yet.</p>
+      ) : (
+        <ul className="divide-y divide-border border-t border-border">
+          {rows.map((p) => (
+            <li key={p.id}>
+              <button type="button" onClick={() => onOpen(p.id)} className="flex w-full items-center gap-3 px-5 py-2.5 text-left hover:bg-surface-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium tabular-nums">{p.receiptNumber}</p>
+                  <p className="text-xs text-muted">{formatWhen(p.receivedAt)} · {METHOD_LABEL[p.method] ?? p.method}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium tabular-nums">{inr(p.amountPaise, true)}</p>
+                  {p.refundedPaise > 0 && <p className="text-xs text-danger-text tabular-nums">−{inr(p.refundedPaise, true)}</p>}
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+const visitTime = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' });
+
+function MemberVisits({ memberId }: { memberId: string }) {
+  const { api } = useAuth();
+  const q = useQuery({
+    queryKey: ['attendance', 'member', memberId],
+    queryFn: () => api.get('/api/v1/members/{id}/attendance', { params: { id: memberId }, query: { limit: 10 } }).then((r) => r),
+  });
+  const rows = q.data?.data ?? [];
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader title="Recent visits" description={q.data?.meta?.total ? `${q.data.meta.total} in total` : undefined} />
+      {q.isError ? (
+        <p className="px-5 pb-5 text-sm text-muted">{errorMessage(q.error)}</p>
+      ) : !q.data ? (
+        <div className="flex flex-col gap-2 px-5 pb-5">{[0, 1].map((i) => <Skeleton key={i} className="h-8" />)}</div>
+      ) : rows.length === 0 ? (
+        <p className="px-5 pb-5 text-sm text-muted">No visits yet.</p>
+      ) : (
+        <ul className="divide-y divide-border border-t border-border">
+          {rows.map((v) => (
+            <li key={v.id} className="flex items-center justify-between px-5 py-2 text-sm">
+              <span>{fullDate(v.day)}</span>
+              <span className="flex items-center gap-1.5 text-muted tabular-nums">
+                {v.method === 'qr' ? <QrCode className="size-3.5" aria-label="QR" /> : <LogIn className="size-3.5" aria-label="Manual" />}
+                {visitTime.format(new Date(v.checkedInAt))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function CancelMembershipDialog({ membership, onClose }: { membership: MembershipView | null; onClose: () => void }) {
+  const { api } = useAuth();
+  const toast = useToast();
+  const refresh = useMoneyRefresh();
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <ConfirmDialog
+      open={membership !== null}
+      onClose={() => { setReason(''); setError(null); onClose(); }}
+      title="Cancel this membership?"
+      description={membership ? `${membership.plan.name}, ${fullDate(membership.startDate)} – ${fullDate(membership.endDate)}` : undefined}
+      confirmLabel="Cancel membership"
+      tone="danger"
+      onConfirm={async () => {
+        if (reason.trim().length < 3) {
+          setError('Say why (at least 3 characters)');
+          return false;
+        }
+        await api.post('/api/v1/memberships/{id}/cancel', { params: { id: membership!.id }, body: { reason: reason.trim() } });
+        refresh(membership!.memberId);
+        toast.show({ tone: 'success', title: 'Membership cancelled' });
+        setReason('');
+      }}
+    >
+      <p>The member can no longer check in on it. Payments already taken are not refunded automatically: refund them from Payments if needed.</p>
+      <Textarea label="Reason" required rows={2} maxLength={500} value={reason} onChange={(e) => { setReason(e.target.value); setError(null); }} error={error ?? undefined} placeholder="e.g. Member moved city" />
+    </ConfirmDialog>
   );
 }
 
@@ -139,6 +277,11 @@ export function MemberProfile({ id }: { id: string }) {
   const member = useMember(id);
   const today = useDashboard().data?.date;
   const [confirm, setConfirm] = useState<'archive' | 'restore' | null>(null);
+  const [sale, setSale] = useState<SaleTarget | null>(null);
+  const [collect, setCollect] = useState<Payable | null>(null);
+  const [cancelling, setCancelling] = useState<MembershipView | null>(null);
+  const [openPayment, setOpenPayment] = useState<string | null>(null);
+  const [checkingIn, setCheckingIn] = useState(false);
 
   if (member.isError) {
     const gone = member.error instanceof ApiError && (member.error.status === 404 || member.error.code === 'VALIDATION_ERROR');
@@ -165,6 +308,23 @@ export function MemberProfile({ id }: { id: string }) {
   const m = member.data;
   const archived = Boolean(m.archivedAt);
   const canEdit = can('members:update') && !archived;
+  const canSell = can('memberships:manage') && !archived;
+  const canCollect = can('payments:record');
+  const canCheckIn = can('attendance:checkin') && !archived && m.membership.status === 'active';
+
+  async function checkIn() {
+    setCheckingIn(true);
+    try {
+      const { data } = await api.post('/api/v1/attendance/manual', { body: { memberId: m.id } });
+      void queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      toast.show(data.status === 'checked_in' ? { tone: 'success', title: `${m.name} checked in` } : { tone: 'info', title: 'Already checked in today' });
+    } catch (err) {
+      toast.show({ tone: 'error', title: 'Not checked in', description: actionMessage(err) });
+    } finally {
+      setCheckingIn(false);
+    }
+  }
 
   async function setArchived(archive: boolean) {
     const { data } = await api.post(archive ? '/api/v1/members/{id}/archive' : '/api/v1/members/{id}/restore', { params: { id } });
@@ -218,6 +378,9 @@ export function MemberProfile({ id }: { id: string }) {
             </div>
           </div>
           <div className="flex justify-center gap-2 sm:flex-col sm:items-stretch lg:flex-row">
+            {canCheckIn && (
+              <Button variant="secondary" leftIcon={<LogIn className="size-4" />} loading={checkingIn} onClick={checkIn}>Check in</Button>
+            )}
             {canEdit && (
               <Link href={`/members/${m.id}/edit`} className={buttonClasses({ variant: 'secondary' })}>
                 <Pencil className="size-4" /> Edit
@@ -256,11 +419,23 @@ export function MemberProfile({ id }: { id: string }) {
               </dl>
             </CardBody>
           </Card>
-          {can('memberships:read') && <MembershipHistory memberId={m.id} />}
+          {can('memberships:read') && (
+            <MembershipHistory
+              memberId={m.id}
+              onCollect={canCollect ? (ms) => setCollect(payableOf(ms, m.name)) : undefined}
+              onCancel={can('memberships:manage') ? setCancelling : undefined}
+            />
+          )}
+          {can('payments:read') && <MemberPayments memberId={m.id} onOpen={setOpenPayment} />}
         </div>
 
         <div className="flex flex-col gap-5 max-lg:order-first">
-          <CurrentMembership member={m} />
+          <CurrentMembership
+            member={m}
+            onSell={canSell ? () => setSale({ memberId: m.id, memberName: m.name, summary: m.membership }) : undefined}
+            onCollect={canCollect && !archived ? setCollect : undefined}
+          />
+          {can('attendance:read') && <MemberVisits memberId={m.id} />}
           <Card>
             <CardHeader title="Member app" action={<Badge tone={app.enabled ? 'success' : 'neutral'} dot>{app.enabled ? 'On' : 'Off'}</Badge>} />
             <CardBody className="flex gap-3 pt-0 text-sm">
@@ -286,6 +461,10 @@ export function MemberProfile({ id }: { id: string }) {
         </div>
       </div>
 
+      <SellMembershipDialog open={sale !== null} target={sale} onClose={() => setSale(null)} />
+      <CollectPaymentDialog open={collect !== null} payable={collect} onClose={() => setCollect(null)} />
+      <CancelMembershipDialog membership={cancelling} onClose={() => setCancelling(null)} />
+      <PaymentDetailDialog paymentId={openPayment} onClose={() => setOpenPayment(null)} />
       <ConfirmDialog
         open={confirm === 'archive'}
         onClose={() => setConfirm(null)}

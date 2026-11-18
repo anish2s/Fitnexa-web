@@ -31,6 +31,12 @@ export function safeNext(next: string | null | undefined, fallback = '/'): strin
 }
 
 const ACTION_MESSAGES: Record<string, string> = {
+  PAYMENT_GATEWAY_NOT_CONNECTED: 'Online payments aren’t set up for this gym yet. The owner can connect Razorpay in Settings.',
+  PAYMENT_GATEWAY_ERROR: 'Razorpay couldn’t complete this. Please try again in a moment.',
+  INVALID_SIGNATURE: 'The online payment couldn’t be verified. Check Payments before trying again.',
+  DUPLICATE_PAYMENT: 'This order was already paid. The second payment wasn’t applied; the owner will refund it.',
+  PASS_EXPIRED: 'This QR pass has expired. Ask the member to refresh it in the app and scan again.',
+  PASS_INVALID: 'This QR code isn’t a member pass for this gym.',
   DUPLICATE: 'A member with this phone or email already exists in this gym.',
   UPLOADS_NOT_CONFIGURED: 'Photo uploads aren’t set up for this gym yet.',
   NOT_FOUND: 'This record no longer exists. It may have been removed.',

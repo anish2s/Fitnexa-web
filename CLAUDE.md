@@ -12,7 +12,9 @@ the dashboard must work without them and handle their "not configured" errors gr
 - Milestone 1 (sign-in, sessions, gym branding, app shell, Overview, platform gym list) — **approved 2026-11-18**.
 - Milestone 2 (members: list, register with consent, profile, edit, archive, photo, CSV import; plans) —
   **approved 2026-11-18**. Consent wording is a draft; the owner will supply the final text later.
-- Milestone 3 (front desk & money) — in progress. Plan and status per milestone: `docs/PROGRESS.md`.
+- Milestone 3 (front desk, check-in, sell/renew, payments, receipts, refunds, renewals, Razorpay) —
+  **approved 2026-11-18**.
+- Milestone 4 (owner tools) — in progress. Plan and status per milestone: `docs/PROGRESS.md`.
 - Stop after each milestone with screenshots and wait for approval before starting the next.
 
 ## Rules

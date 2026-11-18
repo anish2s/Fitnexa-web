@@ -94,8 +94,8 @@ export function GymOverview() {
         title={`${greeting(hour)}, ${firstName}`}
         actions={
           <ActionPill>
-            {can('members:create') && <ActionPillItem as={Link} href="/members" icon={<UserPlus />} primary>Add member</ActionPillItem>}
-            {can('payments:record') && <ActionPillItem as={Link} href="/payments" icon={<Wallet />}>Record payment</ActionPillItem>}
+            {can('members:create') && <ActionPillItem as={Link} href="/members/new" icon={<UserPlus />} primary>Add member</ActionPillItem>}
+            {can('payments:record') && <ActionPillItem as={Link} href="/renewals?tab=dues" icon={<Wallet />}>Record payment</ActionPillItem>}
             {can('attendance:checkin') && <ActionPillItem as={Link} href="/front-desk" icon={<ScanLine />}>Check-in</ActionPillItem>}
           </ActionPill>
         }

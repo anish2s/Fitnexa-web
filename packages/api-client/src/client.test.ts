@@ -138,3 +138,37 @@ test('rawBody is sent as-is with its own content type (CSV import)', async () =>
   assert.equal(calls[1]!.body, csv);
   assert.equal(calls[1]!.url, '/api/v1/members/import?dryRun=true');
 });
+
+test('download returns the file and refreshes once on TOKEN_EXPIRED', async () => {
+  let n = 0;
+  const calls: { url: string; auth?: string }[] = [];
+  const fetch = (async (url: string, init: RequestInit) => {
+    const headers = init.headers as Record<string, string>;
+    calls.push({ url, auth: headers.Authorization });
+    if (url === '/api/v1/auth/login') return new Response(JSON.stringify(session('A')), { status: 200 });
+    if (url === '/api/v1/auth/refresh') return new Response(JSON.stringify(session('B')), { status: 200 });
+    n++;
+    if (n === 1) return new Response(JSON.stringify(err(401, 'TOKEN_EXPIRED').body), { status: 401 });
+    return new Response('%PDF-1.4', { status: 200, headers: { 'content-type': 'application/pdf' } });
+  }) as unknown as typeof globalThis.fetch;
+  const api = createApiClient({ fetch });
+  await api.login('owner@x', 'pw');
+  const blob = await api.download('/api/v1/payments/{id}/receipt', { params: { id: 'p1' } });
+  assert.equal(await blob.text(), '%PDF-1.4');
+  assert.deepEqual(calls.map((c) => [c.url, c.auth]), [
+    ['/api/v1/auth/login', undefined],
+    ['/api/v1/payments/p1/receipt', 'Bearer A'],
+    ['/api/v1/auth/refresh', undefined],
+    ['/api/v1/payments/p1/receipt', 'Bearer B'],
+  ]);
+});
+
+test('download surfaces API errors as ApiError', async () => {
+  const { fetch } = fakeFetch({
+    '/api/v1/auth/login': [{ status: 200, body: session('A') }],
+    '/api/v1/payments/p1/receipt': [err(404, 'NOT_FOUND')],
+  });
+  const api = createApiClient({ fetch });
+  await api.login('owner@x', 'pw');
+  await assert.rejects(api.download('/api/v1/payments/{id}/receipt', { params: { id: 'p1' } }), (e: unknown) => e instanceof ApiError && e.code === 'NOT_FOUND');
+});

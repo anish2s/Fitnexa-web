@@ -23,7 +23,8 @@ export function ConfirmDialog({
   children?: ReactNode;
   confirmLabel: string;
   tone?: 'primary' | 'danger';
-  onConfirm: () => Promise<void>;
+  /** Return false to keep the dialog open (e.g. a field in it is invalid). */
+  onConfirm: () => Promise<void | boolean>;
 }) {
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<{ message: string; ref?: string } | null>(null);
@@ -38,8 +39,7 @@ export function ConfirmDialog({
     setBusy(true);
     setFailure(null);
     try {
-      await onConfirm();
-      onClose();
+      if ((await onConfirm()) !== false) onClose();
     } catch (err) {
       setFailure({ message: actionMessage(err), ref: errorRef(err) });
     } finally {

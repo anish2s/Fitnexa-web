@@ -1,0 +1,6 @@
+{
+  // Use the project's TypeScript (same version as `npm run typecheck`), not the editor's bundled one.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "liveServer.settings.multiRootWorkspaceName": "fitnexa-web"
+}

@@ -7,11 +7,64 @@ Each milestone ends with screenshots and stops for the owner's approval.
 | 0 | Design system & visual direction (`/design-preview`) | ✅ Approved 2026-11-17 |
 | 1 | Foundation: API client, sign-in, sessions, gym branding, app shell, Overview, platform gym list | ✅ Approved 2026-11-18 |
 | 2 | Members & plans: list/search, register (with consent), profile, edit/archive, CSV import, plans | ✅ Approved 2026-11-18 |
-| 3 | Front desk & money: check-in (QR + manual), sell/renew memberships, payments, receipts, refunds, renewals | 🔨 In progress |
-| 4 | Owner tools: reports, staff & permissions, gym settings & branding, audit log, account & sessions | Planned |
+| 3 | Front desk & money: check-in (QR + manual), sell/renew memberships, payments, receipts, refunds, renewals | ✅ Approved 2026-11-18 |
+| 4 | Owner tools: reports, staff & permissions, gym settings & branding, audit log, account & sessions | 🔨 In progress |
 | 5 | Platform console: create/suspend gyms, owner invites, "log in as owner", platform audit log | Planned |
 
 Milestones 2–5 are a proposal; scope is confirmed at the start of each.
+
+## Milestone 3 — Front desk & money (2026-11-18)
+
+Scope confirmed with the owner: Razorpay online payments included now; QR by camera and USB scanner.
+
+**Built**
+- **Front desk** (`/front-desk`): one box for everything. A USB/Bluetooth scanner types the pass
+  (`gp1.…`) and Enter checks in; typing a name, phone or member code searches, with a Check-in button
+  per result (Enter checks in a single match). **Camera** scanning in a dialog (`qr-scanner`: the
+  browser's barcode detector or a worker decoder; camera switch; clear messages for blocked/missing
+  cameras). Result card: photo, name, plan, days left; "already checked in" is not an error; refused
+  check-ins show why (expired on…, starts on…, no membership) with **Renew / Sell membership**; a balance
+  due shows **Collect**. Today panel: check-ins, QR vs manual, share of active members, live list
+  (refreshes every 30 s).
+- **Sell / renew** (dialog from the profile, front desk and renewals): plan, start date (sell) or
+  start rule (renew: automatic / after current ends / today), discount, notes. The API prices the sale
+  (discount before GST); step two collects the exact balance, or "Collect later". Overlap conflicts
+  explain when the next membership can start.
+- **Collect payment**: amount (defaults to the balance), cash / UPI / card / bank with reference,
+  "received on an earlier day" (up to 90 days), notes. Every desk payment carries an Idempotency-Key
+  kept for retries of the same attempt, so a timeout + retry can't charge twice. Amount above the
+  balance is refused on the field. Success shows the receipt number and remaining balance.
+- **Pay online (Razorpay)**: creates the order, opens Razorpay Checkout in the gym's colour, verifies
+  the payment with the API, shows the receipt. Owners see "Online payments are off" when Razorpay isn't
+  connected (button hidden); staff get a clear "not set up" message.
+- **Receipts**: PDF opened in a new tab (fetched with the bearer token; falls back to a download if
+  pop-ups are blocked).
+- **Payments** (`/payments`): today / this month / last month / custom dates, method filter, member
+  filter (from a profile), totals received / refunded / net, paging. Payment detail: membership
+  balance, reference, refunds, receipt, and **Refund** (`payments:refund`): partial and repeated,
+  desk refunds by cash/UPI/bank, online ones through Razorpay; idempotent like payments.
+- **Renewals** (`/renewals`): Expiring soon (with the API's WhatsApp link) · Expired · Dues (Collect +
+  WhatsApp payment reminder) · Reminder log (`renewals:manage`: renewal emails with retry/cancel).
+  WhatsApp opens the gym's own WhatsApp with a prepared message; nothing is sent by the server.
+- **Member profile**: Check in, Sell/Renew, Collect; membership history with Collect and **Cancel**
+  (reason required); payments (opens the payment detail); recent visits.
+- Overview quick actions now go to Add member, Renewals → Dues and Front desk.
+- API client: `download()` for files (auth + one refresh on TOKEN_EXPIRED); response types for
+  attendance, memberships, payments, refunds, notifications, WhatsApp and the gateway.
+
+**Verified**
+- Unit: api-client 10 tests (+ file download with refresh, download errors); ui 5.
+- End-to-end: 17 tests passing (+4): sell with discount → part payment by UPI → receipt PDF opens →
+  check-in allowed with balance shown → overpayment refused → rest collected → same-day repeat check-in
+  → refund with RFND number → cancel with reason; online payment off for owner / "not set up" for staff;
+  staff can't refund; invalid pass explained; renewals tabs. A real rotating QR pass (member app token)
+  was scanned through the box successfully.
+- Typecheck and production build clean; no horizontal scroll at 390 px.
+
+**Not verifiable locally**
+- Razorpay Checkout end to end needs the gym's Razorpay test keys (`npm run razorpay:connect` in the
+  backend). The order → Checkout → verify path is built per the API docs; the "not connected" path is tested.
+- Camera scanning needs a real camera (headless tests use the scanner box).
 
 ## Milestone 2 — Members & plans (2026-11-18)
 

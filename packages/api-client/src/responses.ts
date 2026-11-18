@@ -114,17 +114,38 @@ export interface MemberRef {
 
 export type PaymentMethod = 'cash' | 'upi' | 'card' | 'bank_transfer' | 'razorpay';
 
-/** GET /payments item */
-export interface PaymentListItem {
+export interface RefundView {
+  id: string;
+  refundNumber: string;
+  amountPaise: number;
+  method: string;
+  status: 'pending' | 'processed' | 'failed' | string;
+  refundedAt: string;
+  reason?: string;
+  refundedBy?: string | null;
+}
+
+/** A payment (receipt). Money in paise. */
+export interface PaymentView {
   id: string;
   receiptNumber: string;
+  financialYear: string;
   memberId: string;
   membershipId: string;
   amountPaise: number;
   refundedPaise: number;
+  refunds: RefundView[];
   method: PaymentMethod;
   reference: string | null;
   receivedAt: string;
+  receivedBy?: string | null;
+  notes?: string | null;
+  gateway?: { provider: string; orderId: string; paymentId: string } | null;
+  createdAt?: string | null;
+}
+
+/** GET /payments item */
+export interface PaymentListItem extends PaymentView {
   member?: MemberRef;
 }
 
@@ -303,6 +324,94 @@ export interface GymView {
   [k: string]: unknown;
 }
 
+// ---- Front desk & money (Milestone 3) ----
+
+/** POST /members/:id/memberships and /renew: the membership, plus the payment if one was taken. */
+export type MembershipSale = MembershipView & { payment?: PaymentView };
+
+/** GET /payments/:id, POST /memberships/:id/payments, POST /payments/:id/refunds */
+export interface PaymentDetail extends PaymentView {
+  membership: MembershipView;
+}
+
+/** GET /memberships item */
+export interface MembershipListItem extends MembershipView {
+  member: MemberRef;
+}
+
+export interface CheckIn {
+  id: string;
+  memberId: string;
+  membershipId: string;
+  day: string;
+  checkedInAt: string;
+  method: 'qr' | 'manual';
+}
+
+/** POST /attendance/scan and /attendance/manual */
+export interface CheckInResult {
+  status: 'checked_in' | 'already_checked_in';
+  checkIn: CheckIn;
+  member: { id: string; name: string; memberCode: string; phone: string | null; photoUrl: string | null };
+  membership: { id: string; plan: string; endDate: string; daysLeft: number; balancePaise: number; paymentStatus: string };
+}
+
+/** GET /attendance item */
+export interface AttendanceRow extends CheckIn {
+  member: { id: string; name: string; memberCode: string; phone: string | null; photoUrl: string | null };
+}
+
+/** GET /attendance/report */
+export interface AttendanceDayReport {
+  date: string;
+  total: number;
+  byMethod: { qr: number; manual: number };
+  byHour: { hour: number; count: number }[];
+  busiestHour: number | null;
+  activeMembers: number;
+  attendanceRate: number;
+}
+
+/** GET /members/:id/whatsapp */
+export interface WhatsappLink {
+  template: 'renewal' | 'payment_due' | 'welcome' | 'custom';
+  phone: string;
+  text: string;
+  url: string;
+}
+
+/** GET /notifications item (renewal reminder emails) */
+export interface NotificationItem {
+  id: string;
+  kind: string;
+  channel: string;
+  status: 'queued' | 'sending' | 'sent' | 'failed' | 'skipped' | 'cancelled';
+  attempts: number;
+  nextAttemptAt: string | null;
+  sentAt: string | null;
+  reason: string | null;
+  membershipId: string | null;
+  member: { id: string; name: string; memberCode: string; phone: string | null } | null;
+  createdAt: string;
+}
+
+/** GET /gym/payment-gateway */
+export interface GatewayStatus {
+  available: boolean;
+  razorpay: { connected: boolean; keyId: string | null; mode: 'test' | 'live' | null; liveAllowed: boolean; webhookUrl: string; updatedAt: string | null };
+}
+
+/** POST /memberships/:id/razorpay-order: parameters for Razorpay Checkout. */
+export interface RazorpayCheckout {
+  keyId: string;
+  orderId: string;
+  amountPaise: number;
+  currency: 'INR';
+  name: string;
+  description: string;
+  prefill: { name?: string; email?: string; contact?: string };
+}
+
 /**
  * `data` type per endpoint, keyed "<method> <path>" exactly as in the OpenAPI paths. Endpoints not
  * listed here return `unknown` until a screen needs them.
@@ -341,4 +450,24 @@ export interface ResponseMap {
   'patch /api/v1/plans/{id}': Plan;
   'post /api/v1/plans/{id}/archive': Plan;
   'post /api/v1/plans/{id}/restore': Plan;
+  'post /api/v1/attendance/scan': CheckInResult;
+  'post /api/v1/attendance/manual': CheckInResult;
+  'get /api/v1/attendance': AttendanceRow[];
+  'get /api/v1/attendance/report': AttendanceDayReport;
+  'get /api/v1/members/{id}/attendance': CheckIn[];
+  'post /api/v1/members/{id}/memberships': MembershipSale;
+  'post /api/v1/members/{id}/memberships/renew': MembershipSale;
+  'post /api/v1/memberships/{id}/cancel': MembershipView;
+  'get /api/v1/memberships': MembershipListItem[];
+  'post /api/v1/memberships/{id}/payments': PaymentDetail;
+  'get /api/v1/payments/{id}': PaymentDetail;
+  'get /api/v1/members/{id}/payments': PaymentView[];
+  'post /api/v1/payments/{id}/refunds': PaymentDetail;
+  'get /api/v1/members/{id}/whatsapp': WhatsappLink;
+  'get /api/v1/notifications': NotificationItem[];
+  'post /api/v1/notifications/{id}/retry': NotificationItem;
+  'post /api/v1/notifications/{id}/cancel': NotificationItem;
+  'get /api/v1/gym/payment-gateway': GatewayStatus;
+  'post /api/v1/memberships/{id}/razorpay-order': RazorpayCheckout;
+  'post /api/v1/payments/razorpay/verify': PaymentView;
 }

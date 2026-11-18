@@ -248,6 +248,34 @@ export function createApiClient(opts: ApiClientOptions = {}) {
 
     me: (): Promise<Me> => api.get('/api/v1/auth/me').then((r) => r.data),
 
+    /**
+     * Fetches a file the API serves directly (e.g. a PDF receipt) with the bearer token, refreshing
+     * once on TOKEN_EXPIRED like any other call. Errors come back as ApiError from the JSON body.
+     */
+    async download<P extends PathsWith<'get'>>(path: P, o: { params?: PathParamsOf<P, 'get'>; signal?: AbortSignal } = {}): Promise<Blob> {
+      const url = buildUrl(path as string, o.params as Record<string, unknown>);
+      const fetchOnce = () =>
+        doFetch(baseUrl + url, {
+          headers: { ...opts.headers, ...(session ? { Authorization: `Bearer ${session.accessToken}` } : {}) },
+          credentials: 'include',
+          signal: o.signal,
+        }).catch((err: unknown) => {
+          if ((err as { name?: string }).name === 'AbortError') throw err;
+          throw new ApiError(0, NETWORK_ERROR, 'Could not reach the server. Check your connection and try again.');
+        });
+      if (refreshing) await refreshing.catch(() => undefined);
+      let res = await fetchOnce();
+      if (res.status === 401 && refreshable) {
+        const body = await res.clone().json().catch(() => null);
+        if (body?.error?.code === 'TOKEN_EXPIRED') {
+          await refresh();
+          res = await fetchOnce();
+        }
+      }
+      if (!res.ok) await parse(res); // throws the ApiError
+      return res.blob();
+    },
+
     /** Use a token handed over by the platform console ("log in as owner"). Not refreshable. */
     adoptImpersonation(token: string, user: Session['user'], expiresIn: number) {
       setSession({ accessToken: token, tokenType: 'Bearer', expiresIn, user }, false);
