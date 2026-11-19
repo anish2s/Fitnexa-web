@@ -15,6 +15,31 @@ Milestones 2–5 are a proposal; scope is confirmed at the start of each.
 
 Phase 2 completion report (every gate item with evidence): [PHASE2-REPORT.md](PHASE2-REPORT.md).
 
+## Per-gym favicons and app icons (2026-11-19)
+
+**Built**
+- Gym hosts get the gym's own favicon (32, 48) and apple-touch icon (180): the app icon, else the logo
+  (padded square), resized by Cloudinary per size and versioned with `branding.updatedAt`; from the
+  existing 60 s per-host cache, so no extra API call. Without either: a letter icon (first letter of the
+  gym's name, readable colour on its brand colour) from `GET /gym-icon`, with cache headers.
+  `/favicon.ico` sends each host to its own icon. The platform host uses placeholder Fitexaa icons in
+  `public/platform/`. Gym hosts never show Fitexaa's icon or name.
+- App icon upload in Settings → Branding (owner) and the console's gym → Branding (super admin, signed
+  through the new `POST /platform/tenants/:id/uploads/signature`): PNG/JPG/WebP only, ≤ 2 MB, square;
+  a non-square image opens a crop dialog (zoom + position) first. The API checks the stored file
+  itself (format, size, square) and refuses SVG and other formats; staff can't change branding.
+- Content-Security-Policy (plus `nosniff`, referrer policy): Cloudinary images and uploads, Razorpay
+  Checkout, blob workers; no framing. See `docs/DEPLOYMENT.md`.
+
+**Verified**
+- Dashboard unit: 8 new (`lib/icons.test.ts`: sizes, Cloudinary transformations, logo padding,
+  versions, letter fallback, platform icons never on gyms). E2E: 33 passing (+6, `e2e/icons.spec.ts`):
+  icons per gym host, fallback icon (PNG, cache headers, 404 on platform), admin icon and
+  `/favicon.ico` per host, CSP, upload (SVG refused, non-square cropped, used as favicon, removed;
+  real Cloudinary), staff without branding controls. Backend: 6 new (`app-icon.int.test.ts`): raster
+  formats only in the signature, SVG/GIF/oversized/non-square refused from Cloudinary's record, foreign
+  and fake URLs refused, versioning and old-icon deletion, staff 403, super admin upload; 441 passing.
+
 ## Phase 2 review follow-ups (2026-11-18)
 
 - **Rate limits per visitor**: gym details cached per host for 60 s in the Next server (cleared by edits);

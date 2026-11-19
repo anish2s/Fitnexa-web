@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono';
 import { brandVars } from '@fitexaa/ui';
 import { FITEXAA_ACCENT } from '@/lib/env';
 import { getHostContext, getInitialTheme, hasRefreshCookie } from '@/lib/host-context';
+import { gymIcons, PLATFORM_ICONS } from '@/lib/icons';
 import { Providers } from '@/components/providers';
 import { SiteProblem } from '@/components/site-problem';
 import '../globals.css';
@@ -14,11 +15,12 @@ export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
 export async function generateMetadata(): Promise<Metadata> {
   const ctx = await getHostContext();
   const site = ctx.scope === 'gym' ? ctx.tenant.name : ctx.scope === 'platform' ? 'Fitexaa' : 'Dashboard';
-  const icon = ctx.scope === 'gym' ? ctx.tenant.branding.appIconUrl ?? ctx.tenant.branding.logoUrl : null;
+  // From the same per-host cache as the page (no extra API call). Gym hosts: only the gym's icons.
+  const icons = ctx.scope === 'gym' ? gymIcons(ctx.tenant) : ctx.scope === 'platform' ? PLATFORM_ICONS : null;
   return {
     title: { default: site, template: `%s · ${site}` },
     robots: { index: false },
-    icons: icon ? { icon } : undefined,
+    icons: icons ?? undefined,
   };
 }
 

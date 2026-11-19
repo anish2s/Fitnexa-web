@@ -19,6 +19,8 @@ export interface Branding {
   primaryColor: string;
   secondaryColor: string | null;
   defaultTheme: Theme;
+  /** Last branding change (ISO); versions icon URLs so browsers refetch. null until first change. */
+  updatedAt?: string | null;
 }
 
 /** GET /public/tenant */
@@ -621,6 +623,7 @@ export interface ResponseMap {
   'get /api/v1/members/{id}/memberships': MemberMemberships;
   'post /api/v1/members/import': ImportReport;
   'post /api/v1/uploads/signature': SignedUpload;
+  'post /api/v1/platform/tenants/{id}/uploads/signature': SignedUpload;
   'get /api/v1/plans': Plan[];
   'post /api/v1/plans': Plan;
   'get /api/v1/plans/{id}': Plan;

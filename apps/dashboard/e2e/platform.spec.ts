@@ -40,9 +40,10 @@ test('create a gym, edit it, rebrand it, suspend and reactivate it', async ({ si
   await page.getByRole('button', { name: 'Save changes' }).click();
   await expect(page.getByText('Gym details saved')).toBeVisible();
 
-  // Branding: colour only (uploads happen on the gym's own site).
+  // Branding: colour, plus logo/app icon uploads.
   await page.getByRole('tab', { name: 'Branding' }).click();
-  await expect(page.getByText('Logo and app icon')).toHaveCount(0);
+  // Super admins upload logo and app icon for the gym from here too (signed through the console).
+  await expect(page.getByText('Logo and app icon')).toBeVisible();
   await page.getByRole('radio', { name: '#2563EB' }).click();
   await page.getByRole('button', { name: 'Save branding' }).click();
   await expect(page.getByText('Branding saved')).toBeVisible();

@@ -318,6 +318,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * GET /api/v1/auth/session
+         * @description No sign-in required.
+         */
+        get: operations["getAuthSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/sessions": {
         parameters: {
             query?: never;
@@ -1479,6 +1499,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/tenants/{id}/uploads/signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/v1/platform/tenants/{id}/uploads/signature
+         * @description Super admin, platform host only.
+         */
+        post: operations["postPlatformTenantsByIdUploadsSignature"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/tenants/slug-availability": {
         parameters: {
             query?: never;
@@ -2379,6 +2419,30 @@ export interface operations {
                     "application/json": components["schemas"]["Success"];
                 };
             };
+        };
+    };
+    getAuthSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success envelope (see API.md for the `data` of each endpoint) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Success"];
+                };
+            };
+            400: components["responses"]["E400"];
+            404: components["responses"]["E404"];
+            409: components["responses"]["E409"];
+            429: components["responses"]["E429"];
         };
     };
     getAuthSessions: {
@@ -4637,6 +4701,42 @@ export interface operations {
             content: {
                 "application/json": {
                     reason: string;
+                };
+            };
+        };
+        responses: {
+            400: components["responses"]["E400"];
+            401: components["responses"]["E401"];
+            403: components["responses"]["E403"];
+            404: components["responses"]["E404"];
+            409: components["responses"]["E409"];
+            422: components["responses"]["E422"];
+            429: components["responses"]["E429"];
+            /** @description Success envelope (see API.md for the `data` of each endpoint) */
+            "2XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Success"];
+                };
+            };
+        };
+    };
+    postPlatformTenantsByIdUploadsSignature: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    purpose: "gym_logo" | "gym_icon";
                 };
             };
         };

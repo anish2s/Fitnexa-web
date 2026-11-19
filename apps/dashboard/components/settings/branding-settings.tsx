@@ -9,7 +9,8 @@ import type { GymView, Theme } from '@fitexaa/api-client';
 import { useAuth } from '@/lib/auth';
 import { useGym } from '@/lib/queries';
 import { actionMessage } from '@/lib/errors';
-import { IMAGE_TYPES, imageProblem, uploadImage, UploadFailed } from '@/lib/upload';
+import { IMAGE_TYPES, iconProblem, imageProblem, imageSize, uploadImage, UploadFailed } from '@/lib/upload';
+import { SquareCropDialog } from './square-crop';
 import { GymMark } from '@/components/shell/brand';
 import { FormAlert } from '@/components/form-alert';
 
@@ -75,10 +76,11 @@ function ImageSlot({ label, hint, url, square, onUpload, onRemove }: { label: st
 
 /**
  * Branding form. On the gym's own site it saves with PATCH /gym/branding and re-themes the app; the
- * platform console passes `saveVia` (PATCH /platform/tenants/:id/branding) and hides uploads, which
- * only work on the gym's own host.
+ * platform console passes `saveVia` (PATCH /platform/tenants/:id/branding) and `tenantId`, so uploads
+ * are signed through the console for that gym.
  */
-export function BrandingForm({ gym, saveVia }: { gym: GymView; saveVia?: (body: Record<string, unknown>) => Promise<GymView> }) {
+export function BrandingForm({ gym, saveVia, tenantId }: { gym: GymView; saveVia?: (body: Record<string, unknown>) => Promise<GymView>; tenantId?: string }) {
+  const [cropping, setCropping] = useState<File | null>(null);
   const { api } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -105,12 +107,26 @@ export function BrandingForm({ gym, saveVia }: { gym: GymView; saveVia?: (body: 
     return data;
   }
 
+  const send = async (field: 'logoUrl' | 'appIconUrl', purpose: 'gym_logo' | 'gym_icon', name: string, file: File) => {
+    try {
+      const { deliveryUrl } = await uploadImage(api, tenantId ? { purpose, tenantId } : { purpose }, file);
+      await patch({ [field]: deliveryUrl }, `${name} updated`);
+    } catch (err) {
+      toast.show({ tone: 'error', title: `Couldn’t update the ${name.toLowerCase()}`, description: err instanceof UploadFailed ? err.message : actionMessage(err) });
+    }
+  };
+
   const image = (field: 'logoUrl' | 'appIconUrl', purpose: 'gym_logo' | 'gym_icon', name: string) => ({
     onUpload: async (file: File) => {
-      const problem = imageProblem(file);
+      const problem = purpose === 'gym_icon' ? iconProblem(file) : imageProblem(file);
       if (problem) return void toast.show({ tone: 'error', title: problem });
+      if (purpose === 'gym_icon') {
+        const size = await imageSize(file).catch(() => null);
+        if (!size) return void toast.show({ tone: 'error', title: 'That file couldn’t be read as an image.' });
+        if (size.width !== size.height) return void setCropping(file); // crop first, then upload
+      }
       try {
-        const { deliveryUrl } = await uploadImage(api, { purpose }, file);
+        const { deliveryUrl } = await uploadImage(api, tenantId ? { purpose, tenantId } : { purpose }, file);
         await patch({ [field]: deliveryUrl }, `${name} updated`);
       } catch (err) {
         toast.show({ tone: 'error', title: `Couldn’t update the ${name.toLowerCase()}`, description: err instanceof UploadFailed ? err.message : actionMessage(err) });
@@ -148,13 +164,21 @@ export function BrandingForm({ gym, saveVia }: { gym: GymView; saveVia?: (body: 
 
   return (
     <div className="flex flex-col gap-5">
-      {!saveVia && <Card>
+      {(!saveVia || tenantId) && <Card>
         <CardHeader title="Logo and app icon" description="Your members see only your gym’s name, logo and colour, never ours." />
         <CardBody className="grid gap-6 sm:grid-cols-2">
           <ImageSlot label="Logo" hint="Sidebar, sign-in page and receipts. PNG with a transparent background works best." url={gym.branding.logoUrl} {...image('logoUrl', 'gym_logo', 'Logo')} />
-          <ImageSlot label="App icon" hint="Square, at least 512 × 512. Used when members add the app to their home screen." url={gym.branding.appIconUrl} square {...image('appIconUrl', 'gym_icon', 'App icon')} />
+          <ImageSlot label="App icon" hint="Browser tab and home-screen icon. Square PNG, JPG or WebP, up to 2 MB (512 × 512 or larger looks best)." url={gym.branding.appIconUrl} square {...image('appIconUrl', 'gym_icon', 'App icon')} />
         </CardBody>
       </Card>}
+      <SquareCropDialog
+        file={cropping}
+        onCancel={() => setCropping(null)}
+        onCropped={(f) => {
+          setCropping(null);
+          void send('appIconUrl', 'gym_icon', 'App icon', f);
+        }}
+      />
 
       <Card>
         <CardHeader title="Colour and theme" description="We keep any colour readable in both themes (WCAG AA): too-light or too-dark colours are adjusted where needed." />

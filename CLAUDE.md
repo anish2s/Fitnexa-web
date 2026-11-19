@@ -57,5 +57,8 @@ the dashboard must work without them and handle their "not configured" errors gr
 - Navigation and permissions: `lib/nav.tsx`. Screens not built yet render "planned for Milestone N".
 - "Log in as owner": `lib/support-session.ts` (postMessage hand-off) + `app/(main)/support-session` +
   `adoptSupportSession`/`endSupportSession` in `lib/auth.tsx`. The token never touches a URL or storage.
+- Icons: `lib/icons.ts` (per-host favicon/apple-touch links in the root layout's metadata, from the
+  cached gym lookup), `app/gym-icon` (letter fallback), `app/favicon.ico` (per-host redirect),
+  `public/platform/*` (Fitexaa, platform host only). CSP and security headers: `next.config.ts`.
 - Response types: add to `packages/api-client/src/responses.ts` (`ResponseMap`) when a screen uses an
   endpoint; the OpenAPI spec only types requests.

@@ -46,6 +46,20 @@ lock everyone out. Raising the limit is not the fix. Proof: `tests/http/app.test
 - Page guards ask the API for the session's role (`GET /auth/session`) for owner-only and console
   pages, remembered per refresh cookie for 30 s (menu-link prefetches don't each cost a call).
 
+## Icons and security headers
+- **Favicons / home-screen icons** come from the same 60 s gym cache (no extra API call). Gym hosts:
+  the gym's app icon (else its logo) resized by Cloudinary to 32, 48 and 180 px, versioned with
+  `?v=<branding.updatedAt>`; with neither, a letter icon drawn by `GET /gym-icon?s=…&v=…` (cached for a
+  year when `v` matches the current name and colour, 5 minutes otherwise). `/favicon.ico` redirects
+  each host to its own icon. The platform host uses `public/platform/*` (placeholder Fitexaa icons:
+  replace the SVG and the three PNGs). A gym host never links Fitexaa's icons.
+- **Content-Security-Policy** (`next.config.ts`): images from this site, `data:`/`blob:` and
+  `https://res.cloudinary.com`; uploads to `https://api.cloudinary.com`; Razorpay Checkout's script,
+  frames and API; `blob:` workers (QR scanner); no plugins, no framing. Scripts and styles still allow
+  `'unsafe-inline'` (Next.js inline bootstrap; nonces are a later step). If you serve images or call
+  APIs from another domain, add it there. Also sent: `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`.
+
 ## Status codes
 - API unreachable: pages answer **503** with `Retry-After: 30` and a short "can't reach the service"
   page (`proxy.ts`); `/api/*` answers 503 `API_UNAVAILABLE` (JSON).

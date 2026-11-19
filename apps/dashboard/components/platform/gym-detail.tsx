@@ -309,7 +309,7 @@ export function GymDetail({ id }: { id: string }) {
         </div>
       )}
       {tab === 'branding' && (
-        <BrandingForm key={t.updatedAt} gym={t} saveVia={async (body) => { const { data } = await api.patch('/api/v1/platform/tenants/{id}/branding', { params: { id }, body: body as never }); saved(data); return data; }} />
+        <BrandingForm key={t.updatedAt} gym={t} tenantId={id} saveVia={async (body) => { const { data } = await api.patch('/api/v1/platform/tenants/{id}/branding', { params: { id }, body: body as never }); saved(data); return data; }} />
       )}
       {tab === 'audit' && <AuditLog source={{ kind: 'tenant', tenantId: id }} embedded />}
 
